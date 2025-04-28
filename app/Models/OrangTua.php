@@ -13,4 +13,14 @@ class OrangTua extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function siswa()
+    {
+        return $this->belongsTo(Siswa::class);
+    }
+
+    public function pembayaran_spp()
+    {
+        return $this->hasMany(PembayaranSpp::class);
+    }
 }

@@ -13,4 +13,14 @@ class Alumni extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function siswa()
+    {
+        return $this->belongsTo(Siswa::class);
+    }
+
+    public function manajemen_event()
+    {
+        return $this->hasMany(Event::class);
+    }
 }

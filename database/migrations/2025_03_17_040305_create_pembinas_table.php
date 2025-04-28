@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('pembinas', function (Blueprint $table) {
             $table->id();
-            $table->string('nama')->nullable();
+            $table->string('nama');
+            $table->foreignId('guru_id')->nullable()->constrained('gurus')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });

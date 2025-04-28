@@ -13,4 +13,29 @@ class Siswa extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function alumni()
+    {
+        return $this->hasOne(Alumni::class);
+    }
+
+    public function nilai_akademik()
+    {
+        return $this->hasMany(NilaiAkademik::class);
+    }
+
+    public function nilai_non_akademik()
+    {
+        return $this->hasMany(NilaiNonAkademik::class);
+    }
+
+    public function orang_tua()
+    {
+        return $this->hasMany(OrangTua::class);
+    }
+
+    public function pembayaran_spp()
+    {
+        return $this->hasMany(PembayaranSpp::class);
+    }
 }

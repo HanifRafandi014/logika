@@ -13,7 +13,11 @@ return new class extends Migration
     {
         Schema::create('alumnis', function (Blueprint $table) {
             $table->id();
-            $table->string('nama')->nullable();
+            $table->string('nama');
+            $table->integer('tahun_lulus');
+            $table->string('pekerjaan');
+            $table->string('no_hp');
+            $table->foreignId('siswa_id')->nullable()->constrained('siswas')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });

@@ -13,4 +13,13 @@ class Pembina extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function guru()
+    {
+        return $this->belongsTo(Guru::class);
+    }
+
+    public function nilai_non_akademik()
+    {
+        return $this->hasMany(NilaiNonAkademik::class);
+    }
 }
