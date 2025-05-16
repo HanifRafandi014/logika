@@ -1,11 +1,45 @@
 <!-- Sidebar -->
-<div class="sidebar" data-background-color="dark">
+{{-- <style>
+.sidebar .nav-item {
+  background-color: #1E2A38; /* warna dasar */
+  border-radius: 8px;
+  margin: 4px 8px;
+  transition: all 0.3s ease;
+}
+
+/* Hanya nav-item.active yang putih */
+.sidebar .nav-item.active {
+  background-color: #ffffff;
+  box-shadow: inset 0 0 0 2px #007bff;
+}
+
+.sidebar .nav-item a {
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.sidebar .nav-item.active a {
+  color: black;
+  font-weight: bold;
+}
+
+/* Hover hanya ubah background jika tidak aktif */
+.sidebar .nav-item:not(.active):hover {
+  background-color: #343a40;
+}
+</style> --}}
+
+<div class="sidebar">
     <div class="sidebar-logo">
       <!-- Logo Header -->
       <div class="logo-header" data-background-color="dark">
         <a href="index.html" class="logo">
           <img
-            src="{{ asset('img/kaiadmin/logo_light.svg') }}"
+            src="{{ asset('assets/img/kaiadmin/logo_light.svg') }}"
             alt="navbar brand"
             class="navbar-brand"
             height="20"
@@ -28,60 +62,54 @@
     <div class="sidebar-wrapper scrollbar scrollbar-inner">
       <div class="sidebar-content">
         <ul class="nav nav-secondary">
-          <li class="nav-item active">
+          <li class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
             <a
-              data-bs-toggle="collapse"
-              href="{{route('admin.dashboard_admin')}}"
+              class="nav-link"
+              href="{{route('admin.dashboard')}}"
               class="collapsed"
               aria-expanded="false"
             >
               <i class="fas fa-home"></i>
-              <p>Dashboard</p>
-              <span class="caret"></span>
+              <span>Dashboard</span>
+              {{-- <span class="caret"></span> --}}
             </a>
           </li>
           <li class="nav-item">
-            <a data-bs-toggle="collapse" href="#base">
+            <a class="nav-link" href="{{route('data-pembina.index')}}">
               <i class="fas fa-layer-group"></i>
-              <p>Data Pembina</p>
-              <span class="caret"></span>
+              <span>Data Pembina</span>
             </a>
           </li>
           <li class="nav-item">
-            <a data-bs-toggle="collapse" href="#base">
+            <a class="nav-link" href="{{route('data-guru.index')}}">
               <i class="fas fa-layer-group"></i>
-              <p>Data Guru</p>
-              <span class="caret"></span>
+              <span>Data Guru</span>
             </a>
           </li>
           <li class="nav-item">
-            <a data-bs-toggle="collapse" href="#base">
+            <a class="nav-link" href="{{route('data-siswa.index')}}">
               <i class="fas fa-layer-group"></i>
-              <p>Data Siswa</p>
-              <span class="caret"></span>
+              <span>Data Siswa</span>
             </a>
           </li>
           <li class="nav-item">
-            <a data-bs-toggle="collapse" href="#base">
+            <a class="nav-link" href="{{route('data-orang-tua.index')}}">
               <i class="fas fa-layer-group"></i>
-              <p>Data Orang Tua</p>
-              <span class="caret"></span>
+              <span>Data Orang Tua</span>
             </a>
           </li>
           <li class="nav-item">
-            <a data-bs-toggle="collapse" href="#base">
+            <a class="nav-link" href="{{route('data-alumni.index')}}">
               <i class="fas fa-layer-group"></i>
-              <p>Data Alumni</p>
-              <span class="caret"></span>
+              <span>Data Alumni</span>
             </a>
           </li>
-          <li class="nav-item">
-            <a data-bs-toggle="collapse" href="#base">
+          {{-- <li class="nav-item">
+            <a class="nav-link" href="{{route('data-soal.index')}}">
               <i class="fas fa-layer-group"></i>
-              <p>Data Soal</p>
-              <span class="caret"></span>
+              <span>Data Soal</span>
             </a>
-          </li>
+          </li> --}}
         </ul>
       </div>
     </div>

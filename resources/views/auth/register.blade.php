@@ -210,9 +210,10 @@
                             <option value="">Select Role</option>
                             <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                             <option value="pembina" {{ old('role') == 'pembina' ? 'selected' : '' }}>Pembina</option>
-                            <option value="peserta" {{ old('role') == 'peserta' ? 'selected' : '' }}>Peserta</option>
-                            <option value="juri" {{ old('role') == 'juri' ? 'selected' : '' }}>Juri</option>
-                            <option value="ketua_pelaksana" {{ old('role') == 'ketua_pelaksana' ? 'selected' : '' }}>Ketua Pelaksana</option>
+                            <option value="siswa" {{ old('role') == 'siswa' ? 'selected' : '' }}>Siswa</option>
+                            <option value="alumni" {{ old('role') == 'alumni' ? 'selected' : '' }}>Alumni</option>
+                            <option value="guru" {{ old('role') == 'guru' ? 'selected' : '' }}>Guru</option>
+                            <option value="orang_tua" {{ old('role') == 'orang_tua' ? 'selected' : '' }}>Orang Tua</option>
                         </select>
                         @error('role')
                             <span class="text-danger small">{{ $message }}</span>

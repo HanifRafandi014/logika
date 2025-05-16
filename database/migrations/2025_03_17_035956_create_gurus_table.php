@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('gurus', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
-            $table->string('mata_pelajaran');
-            $table->string('nip');
-            $table->boolean('pembina_pramuka');
+            $table->string('nama')->nullable();
+            $table->string('mata_pelajaran')->nullable();
+            $table->string('nip')->nullable();
+            $table->string('pembina_pramuka')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });

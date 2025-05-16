@@ -16,15 +16,15 @@ class LoginController extends Controller
             $user = Auth::user();
             switch ($user->role){
                 case 'admin':
-                    return redirect()->route('admin.dashboard_admin');
+                    return redirect()->route('admin.dashboard');
                 case 'pembina':
-                    return redirect()->route('pembina.dashboard_pembina');
+                    return redirect()->route('pembina.dashboard');
                 case 'guru':
-                    return redirect()->route('guru.dashboard_guru');
+                    return redirect()->route('guru.dashboard');
                 case 'siswa' :
-                    return redirect()->route('siswa.dashboard_siswa');
+                    return redirect()->route('siswa.dashboard');
                 case 'orang_tua' :
-                    return redirect()->route('orang-tua.dashboard_orang_tua');
+                    return redirect()->route('orang-tua.dashboard');
                 default:
                     return redirect()->route('/404');
             }

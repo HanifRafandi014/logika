@@ -7,5 +7,7 @@ use Illuminate\Http\Request;
 
 class ClusteringNilai extends Controller
 {
-    //
+    public function index() {
+
+    }
 }

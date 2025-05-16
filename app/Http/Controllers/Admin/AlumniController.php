@@ -6,47 +6,62 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Alumni;
+use App\Models\Siswa;
 use App\Models\User;
 
 class AlumniController extends Controller
 {
     public function index() {
-        $alumni = Alumni::all();
-    return view('admin.alumni.index', compact('alumni'));
+        $alumnis = Alumni::with('siswa')->get();
+    return view('admin.alumni.index', compact('alumnis'));
     } 
 
     public function create(){
-        return view('admin.alumni.create');
+        $siswas = Siswa::all();
+        return view('admin.alumni.create', compact('siswas'));
     }
     public function store(Request $request){
         $validatedData = $request->validate([
-            'nama' => 'required',
             'tahun_lulus' => 'required',
             'pekerjaan' => 'required',
             'no_hp' => 'required',
-        ]);
-        $validatedData['nama'] =strtoupper(trim($validatedData['nama']));
-        Alumni::create($validatedData);
-        return redirect()->route('admin.alumni.index')->with('success', 'Data berhasil ditambahkan!');
-    }
-    public function edit($id){
-        $alumni = Alumni::findOrFail($id);
-        return view('admin.alumni.edit', compact('alumni'));
-    }
-    public function update(Request $request,  $id){
-        $validatedData = $request->validate([
-            'nama' => 'required',
-            'tahun_lulus' => 'required',
-            'pekerjaan' => 'required',
-            'no_hp' => 'required',
+            'siswa_id' => 'nullable',
         ]);
 
+        $alumni = Alumni::create([
+            'tahun_lulus' => $validatedData['tahun_lulus'],
+            'pekerjaan' => $validatedData['pekerjaan'],
+            'no_hp' => $validatedData['no_hp'],
+            'siswa_id' => $validatedData['siswa_id']
+        ]);
+        return redirect()->route('data-alumni.index')->with('success', 'Data berhasil ditambahkan!');
+    }
+    public function edit($id){
+        $siswas = Siswa::all();
         $alumni = Alumni::findOrFail($id);
-        $alumni->update($validatedData);
-        return redirect()->route('admin.alumni.index')->with('success', 'Data berhasil diubah!');
+        return view('admin.alumni.edit', compact('alumni', 'siswas'));
+    }
+    public function update(Request $request,  $id){
+        $alumni = Alumni::findOrFail($id);
+
+        $validatedData = $request->validate([
+            'tahun_lulus' => 'required',
+            'pekerjaan' => 'required',
+            'no_hp' => 'required',
+            'siswa_id' => 'nullable',
+        ]);
+
+        $alumni->update([
+            'tahun_lulus' => $validatedData['tahun_lulus'],
+            'pekerjaan' => $validatedData['pekerjaan'],
+            'no_hp' => $validatedData['no_hp'],
+            'siswa_id' => $validatedData['siswa_id']
+        ]);
+
+        return redirect()->route('data-alumni.index')->with('success', 'Data berhasil diubah!');
     }
     public function destroy($id){
         Alumni::destroy($id);
-        return redirect()->route('admin.alumni.index')->with('success', 'Data berhasil dihapus!');
+        return redirect()->route('data-alumni.index')->with('success', 'Data berhasil dihapus!');
     }
 }

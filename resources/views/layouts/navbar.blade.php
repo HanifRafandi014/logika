@@ -66,7 +66,7 @@
               <a href="#">
                 <div class="notif-img">
                   <img
-                    src="{{ asset('img/jm_denis.jpg') }}"
+                    src="{{ asset('assets/img/jm_denis.jpg') }}"
                     alt="Img Profile"
                   />
                 </div>
@@ -79,7 +79,7 @@
               <a href="#">
                 <div class="notif-img">
                   <img
-                    src="{{ asset('img/chadengle.jpg') }}"
+                    src="{{ asset('assets/img/chadengle.jpg') }}"
                     alt="Img Profile"
                   />
                 </div>
@@ -92,7 +92,7 @@
               <a href="#">
                 <div class="notif-img">
                   <img
-                    src="{{ asset('img/mlane.jpg') }}"
+                    src="{{ asset('assets/img/mlane.jpg') }}"
                     alt="Img Profile"
                   />
                 </div>
@@ -107,7 +107,7 @@
               <a href="#">
                 <div class="notif-img">
                   <img
-                    src="{{ asset('img/talha.jpg') }}"
+                    src="{{ asset('assets/img/talha.jpg') }}"
                     alt="Img Profile"
                   />
                 </div>
@@ -175,7 +175,7 @@
               <a href="#">
                 <div class="notif-img">
                   <img
-                    src="{{ asset('img/profile2.jpg') }}"
+                    src="{{ asset('assets/img/profile2.jpg') }}"
                     alt="Img Profile"
                   />
                 </div>
@@ -293,7 +293,7 @@
       >
         <div class="avatar-sm">
           <img
-            src="{{ asset('img/profile.jpg') }}"
+            src="{{ asset('assets/img/profile.jpg') }}"
             alt="..."
             class="avatar-img rounded-circle"
           />
@@ -309,7 +309,7 @@
             <div class="user-box">
               <div class="avatar-lg">
                 <img
-                  src="{{ asset('img/profile.jpg') }}"
+                  src="{{ asset('assets/img/profile.jpg') }}"
                   alt="image profile"
                   class="avatar-img rounded"
                 />
