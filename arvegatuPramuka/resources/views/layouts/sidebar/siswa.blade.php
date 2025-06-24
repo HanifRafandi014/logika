@@ -74,30 +74,26 @@
             >
               <i class="fas fa-home"></i>
               <p>Dashboard</p>
-              <span class="caret"></span>
             </a>
           </li>
           <li class="nav-item">
-            <a data-bs-toggle="collapse" href="#base">
-              <i class="fas fa-layer-group"></i>
-              <p>Data Lihat Nilai Akademik</p>
-              <span class="caret"></span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a data-bs-toggle="collapse" href="#base">
-              <i class="fas fa-layer-group"></i>
-              <p>Data Lihat Nilai Non Akademik</p>
-              <span class="caret"></span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a data-bs-toggle="collapse" href="#base">
-              <i class="fas fa-layer-group"></i>
-              <p>Data Lihat Kelas Pramuka</p>
-              <span class="caret"></span>
-            </a>
-          </li>
+            <a class="nav-link collapsed" data-bs-toggle="collapse" href="#nilaiSiswa" aria-expanded="false" aria-controls="nilaiSiswaMenu">
+                <i class="fas fa-layer-group"></i>
+                <span>Nilai Siswa</span>
+                <span class="caret"></span> </a>
+            <div class="collapse" id="nilaiSiswa">
+                <ul class="nav nav-collapse">
+                    <li>
+                        <a href="{{ route('siswa.lihat_nilai_akademik') }}"> <span class="sub-item">Nilai Akademik</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('siswa.lihat_nilai_non_akademik') }}"> <span class="sub-item">Nilai Non Akademik</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
         </ul>
       </div>
     </div>

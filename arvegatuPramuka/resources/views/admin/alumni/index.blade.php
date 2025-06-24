@@ -11,23 +11,23 @@
         font-size: 14px;
         transition: all 0.3s ease;
       }
-  
+    
       .column-search:focus {
         border-color: #66afe9;
         outline: none;
         box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
       }
     </style>
-  </head>
-  
-  @extends('layouts.main')
-  
-  @section('sidebar')
+</head>
+ 
+@extends('layouts.main')
+ 
+@section('sidebar')
     @include('layouts.sidebar.admin')
-  @endsection
-  
-  @section('content')
-  <div class="col-md-12">
+@endsection
+ 
+@section('content')
+<div class="col-md-12">
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="card-title">Data Alumni</h4>
@@ -35,8 +35,12 @@
               <a href="{{ route('data-alumni.create') }}" class="btn btn-primary btn-sm me-2" title="Tambah Alumni">
                   <i class="fa fa-plus-square" aria-hidden="true"></i>
               </a>
-          </div>    
-        </div>    
+              {{-- Jika ada rute import alumni --}}
+              {{-- <a href="{{ route('admin.alumni.import-form-alumni') }}" class="btn btn-success btn-sm" title="Import">
+                  <i class="fas fa-file-excel"></i>
+              </a> --}}
+          </div>     
+        </div>     
       <div class="card-body">
         <div class="table-responsive">
           <table id="multi-filter-select" class="display table table-striped table-hover">
@@ -44,6 +48,8 @@
               <tr>
                 <th>No</th>
                 <th>Nama Alumni</th>
+                <th>NISN</th>
+                <th>Angkatan</th>
                 <th>Tahun Lulus</th>
                 <th>Pekerjaan</th>
                 <th>No Handphone</th>
@@ -53,8 +59,11 @@
             <tbody>
                 @foreach ($alumnis as $index => $alumni)
                 <tr>
-                  <td>{{ $index + 1 }}</td> <!-- Nomor Urut -->
-                  <td>{{ $alumni->siswa->nama }}</td>
+                  <td>{{ $index + 1 }}</td>
+                  {{-- Mengambil nama dari relasi siswa, fallback ke kolom nama di alumni jika relasi tidak ada --}}
+                  <td>{{ $alumni->siswa->nama ?? $alumni->nama ?? 'N/A' }}</td>
+                  <td>{{ $alumni->siswa->nisn ?? 'N/A' }}</td> {{-- Ambil NISN dari relasi siswa --}}
+                  <td>{{ $alumni->siswa->angkatan ?? 'N/A' }}</td> {{-- Ambil Angkatan dari relasi siswa --}}
                   <td>{{ $alumni->tahun_lulus }}</td>
                   <td>{{ $alumni->pekerjaan }}</td>
                   <td>{{ $alumni->no_hp }}</td>
@@ -69,7 +78,7 @@
                         <i class="fas fa-trash-alt"></i>
                       </button>
                     </form>
-                  </td>                  
+                  </td>              
                 </tr>
                 @endforeach
             </tbody>
@@ -78,11 +87,11 @@
         </div>
       </div>
     </div>
-  </div>
-  @endsection
-  
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  <script>
+</div>
+@endsection
+ 
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script>
     $(document).ready(function () {
       var table = $('#multi-filter-select').DataTable({
         orderCellsTop: true,
@@ -90,5 +99,4 @@
         pageLength: 5
       });
     });
-  </script>
-  
+</script>

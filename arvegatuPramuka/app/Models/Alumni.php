@@ -19,7 +19,7 @@ class Alumni extends Model
         return $this->belongsTo(Siswa::class);
     }
 
-    public function manajemen_event()
+    public function events()
     {
         return $this->hasMany(Event::class);
     }

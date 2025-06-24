@@ -14,11 +14,6 @@ class Guru extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function pembina()
-    {
-        return $this->hasOne(Pembina::class);
-    }
-
     public function nilai_akademik()
     {
         return $this->hasMany(NilaiAkademik::class);

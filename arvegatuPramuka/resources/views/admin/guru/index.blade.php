@@ -32,6 +32,9 @@
       <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="card-title mb-0">Data Guru</h4>
         <div class="d-flex ms-auto">
+          <a href="{{ route('admin.guru.download-template') }}" class="btn btn-info btn-sm me-2" title="Download Template">
+                  <i class="fas fa-download"></i>
+              </a>
             <a href="{{ route('data-guru.create') }}" class="btn btn-primary btn-sm me-2" title="Tambah Guru">
                 <i class="fa fa-plus-square" aria-hidden="true"></i>
             </a>

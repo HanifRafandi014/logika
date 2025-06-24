@@ -19,4 +19,9 @@ class NilaiAkademik extends Model
     {
         return $this->belongsTo(Guru::class);
     }
+
+    public function lomba()
+    {
+        return $this->belongsTo(Lomba::class);
+    }
 }

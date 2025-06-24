@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('username')->unique();
             $table->string('password');
             $table->string('foto_profil')->nullable();
-            $table->enum('role', ['admin', 'pembina', 'guru', 'siswa', 'orang_tua']);
+            $table->enum('role', ['admin', 'pembina', 'guru', 'siswa', 'orang_tua', 'alumni']);
             $table->rememberToken();
             $table->timestamps();
         });

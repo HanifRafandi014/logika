@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('nama');
             $table->string('nip');
-            $table->foreignId('guru_id')->nullable()->constrained('gurus')->onDelete('cascade')->onUpdate('cascade');
+            $table->string('kategori');
+            $table->boolean('status');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });

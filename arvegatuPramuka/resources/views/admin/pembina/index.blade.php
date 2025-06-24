@@ -11,27 +11,30 @@
         font-size: 14px;
         transition: all 0.3s ease;
       }
-  
+    
       .column-search:focus {
         border-color: #66afe9;
         outline: none;
         box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
       }
     </style>
-  </head>
-  
-  @extends('layouts.main')
-  
-  @section('sidebar')
+</head>
+ 
+@extends('layouts.main')
+ 
+@section('sidebar')
     @include('layouts.sidebar.admin')
-  @endsection
-  
-  @section('content')
-  <div class="col-md-12">
+@endsection
+ 
+@section('content')
+<div class="col-md-12">
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="card-title">Data Pembina</h4>
             <div class="d-flex ms-auto">
+              <a href="{{ route('admin.pembina.data-pembina.export') }}" class="btn btn-info btn-sm me-2" title="Download Template">
+                  <i class="fas fa-download"></i>
+              </a>
               <a href="{{ route('data-pembina.create') }}" class="btn btn-primary btn-sm me-2" title="Tambah Pembina">
                   <i class="fa fa-plus-square" aria-hidden="true"></i>
               </a>
@@ -39,7 +42,7 @@
                   <i class="fas fa-file-excel"></i>
               </a>
           </div>     
-        </div>    
+        </div>     
       <div class="card-body">
         <div class="table-responsive">
           <table id="multi-filter-select" class="display table table-striped table-hover">
@@ -48,15 +51,24 @@
                 <th>No</th>
                 <th>Nama Pembina</th>
                 <th>NIP</th>
+                <th>Kategori</th>
+                <th>Status</th>
                 <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
                 @foreach ($pembinas as $index => $pembina)
                 <tr>
-                  <td>{{ $index + 1 }}</td> <!-- Nomor Urut -->
-                  <td>{{ $pembina->nama }}</td>
-                  <td>{{ $pembina->nip }}</td>
+                  <td>{{ $index + 1 }}</td> <td>{{ $pembina->nama ?? 'N/A' }}</td> 
+                  <td>{{ $pembina->nip ?? 'N/A' }}</td> 
+                  <td>{{ $pembina->kategori }}</td>
+                  <td>
+                      @if ($pembina->status == 1)
+                          Pembina PA
+                      @else
+                          Pembina PI
+                      @endif
+                  </td>
                   <td>
                     <a href="{{ route('data-pembina.edit', $pembina->id) }}" class="btn btn-sm btn-warning" title="Edit">
                         <i class="fas fa-edit"></i>
@@ -68,7 +80,7 @@
                         <i class="fas fa-trash-alt"></i>
                       </button>
                     </form>
-                  </td>                  
+                  </td>           
                 </tr>
                 @endforeach
             </tbody>
@@ -77,17 +89,21 @@
         </div>
       </div>
     </div>
-  </div>
-  @endsection
-  
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  <script>
+</div>
+@endsection
+ 
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script>
     $(document).ready(function () {
       var table = $('#multi-filter-select').DataTable({
         orderCellsTop: true,
         fixedHeader: true,
-        pageLength: 5
+        pageLength: 5,
+        // Mengatur kolom yang tidak bisa diurutkan dan dicari
+        columnDefs: [
+            { "orderable": false, "targets": [0, 4] }, // Kolom No, Aksi tidak dapat diurutkan
+            { "searchable": false, "targets": [0, 4] } // Kolom No, Aksi tidak dapat dicari global
+        ]
       });
     });
-  </script>
-  
+</script>

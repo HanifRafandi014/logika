@@ -13,13 +13,17 @@ class Pembina extends Model
     {
         return $this->belongsTo(User::class);
     }
-    public function guru()
-    {
-        return $this->belongsTo(Guru::class);
-    }
 
     public function nilai_non_akademik()
     {
         return $this->hasMany(NilaiNonAkademik::class);
+    }
+    public function penilaian_skk()
+    {
+        return $this->hasMany(PenilaianSkk::class, 'pembina_id');
+    }
+    public function penilaian_sku()
+    {
+        return $this->hasMany(PenilaianSku::class, 'pembina_id');
     }
 }

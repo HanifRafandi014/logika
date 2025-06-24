@@ -30,9 +30,9 @@
   <div class="col-md-12">
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="card-title mb-0">Data Guru</h4>
+        <h4 class="card-title mb-0">Data Nilai Akademik Siswa</h4>
         <div class="d-flex ms-auto">
-            <a href="{{ route('nilai-akademik.create') }}" class="btn btn-primary btn-sm me-2" title="Tambah Nilai Akademik">
+            <a href="{{ route('nilai_akademik.create') }}" class="btn btn-primary btn-sm me-2" title="Tambah Nilai Akademik">
                 <i class="fa fa-plus-square" aria-hidden="true"></i>
             </a>
         </div>     
@@ -44,25 +44,27 @@
               <tr>
                 <th>No</th>
                 <th>Nama Guru</th>
+                <th>Nama Siswa</th>
                 <th>Mata Pelajaran</th>
-                <th>NIP</th>
-                <th>Pembina Pramuka</th>
+                <th>Semester</th>
+                <th>Nilai</th>
                 <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-                @foreach ($gurus as $index => $guru)
+                @foreach ($nilaiAkademiks as $nilaiAkademik)
                 <tr>
-                  <td>{{ $index + 1 }}</td> <!-- Nomor Urut -->
-                  <td>{{ $guru->nama }}</td>
-                  <td>{{ $guru->mata_pelajaran }}</td>
-                  <td>{{ $guru->nip }}</td>
-                  <td>{{ $guru->pembina_pramuka ? 'Ya' : 'Tidak' }}</td>
+                  <td>{{ $loop->iteration }}</td> <!-- Nomor Urut -->
+                  <td>{{ $nilaiAkademik->guru->nama ?? 'N/A' }}</td>
+                  <td>{{ $nilaiAkademik->siswa->nama ?? 'N/A' }}</td>
+                  <td>{{ $nilaiAkademik->mata_pelajaran }}</td>
+                  <td>{{ $nilaiAkademik->semester }}</td>
+                  <td>{{ $nilaiAkademik->nilai }}</td>
                   <td>
-                    <a href="{{ route('data-guru.edit', $guru->id) }}" class="btn btn-sm btn-warning" title="Edit">
+                    <a href="{{ route('nilai_akademik.edit', $nilaiAkademik->id) }}" class="btn btn-sm btn-warning" title="Edit">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <form action="{{ route('data-guru.destroy', $guru->id) }}" method="POST" style="display:inline;">
+                    <form action="{{ route('nilai_akademik.destroy', $nilaiAkademik->id) }}" method="POST" style="display:inline;">
                       @csrf
                       @method('DELETE')
                       <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus data ini?')" title="Hapus">

@@ -4,50 +4,57 @@ namespace App\Http\Controllers\OrangTua;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use App\Models\OrangTua;
+use App\Models\Siswa;
 
 class DataOrangTua extends Controller
 {
-    public function index() {
-        $orang_tua = OrangTua::all();
-    return view('admin.event.index', compact('orang_tua'));
-    } 
+    public function showProfileForm()
+    {
+        $user = Auth::user();
+        $orangTua = OrangTua::where('user_id', $user->id)->with('siswa')->first();
+        $loggedInUsername = $user->username;
 
-    public function create(){
-        return view('admin.event.create');
+        // Ambil SEMUA data siswa untuk dropdown
+        $siswas = Siswa::all();
+
+        // Pass $orangTua, $loggedInUsername, dan $siswas ke view
+        return view('orang_tua.profile.form', compact('orangTua', 'loggedInUsername', 'siswas'));
     }
-    public function store(Request $request){
-        $validatedData = $request->validate([
-            'nama_alumni' => 'required',
-            'jenis_event' => 'required',
-            'judul' => 'required',
-            'gambar' => 'required',
-            'keterangan' => 'required',
-        ]);
-        $validatedData['nama'] =strtoupper(trim($validatedData['nama']));
-        OrangTua::create($validatedData);
-        return redirect()->route('admin.orang_tua.index')->with('success', 'Data berhasil ditambahkan!');
-    }
-    public function edit($id){
-        $event = OrangTua::findOrFail($id);
-        return view('admin.event.edit', compact('event'));
-    }
-    public function update(Request $request,  $id){
-        $validatedData = $request->validate([
-            'nama_alumni' => 'required',
-            'jenis_event' => 'required',
-            'judul' => 'required',
-            'gambar' => 'required',
-            'keterangan' => 'required',
+
+    public function saveOrUpdateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'no_hp' => 'required|string|max:20',
+            'alamat' => 'required|string|max:255',
+            'siswa_id' => 'nullable|exists:siswas,id', // Validasi siswa_id harus ada di tabel siswas
         ]);
 
-        $event = OrangTua::findOrFail($id);
-        $event->update($validatedData);
-        return redirect()->route('admin.event.index')->with('success', 'Data berhasil diubah!');
-    }
-    public function destroy($id){
-        OrangTua::destroy($id);
-        return redirect()->route('admin.event.index')->with('success', 'Data berhasil dihapus!');
+        $orangTua = OrangTua::where('user_id', $user->id)->first();
+
+        if ($orangTua) {
+            // Data sudah ada, perbarui
+            $orangTua->update([
+                'nama' => $request->nama,
+                'no_hp' => $request->no_hp,
+                'alamat' => $request->alamat,
+                'siswa_id' => $request->siswa_id, // Simpan siswa_id yang dipilih
+            ]);
+            return redirect()->back()->with('success', 'Profil orang tua berhasil diperbarui!');
+        } else {
+            // Data belum ada, buat baru
+            OrangTua::create([
+                'nama' => $request->nama,
+                'no_hp' => $request->no_hp,
+                'alamat' => $request->alamat,
+                'siswa_id' => $request->siswa_id, // Simpan siswa_id yang dipilih
+                'user_id' => $user->id,
+            ]);
+            return redirect()->back()->with('success', 'Profil orang tua berhasil disimpan!');
+        }
     }
 }

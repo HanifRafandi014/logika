@@ -75,41 +75,53 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{route('data-pembina.index')}}">
-              <i class="fas fa-layer-group"></i>
-              <span>Data Pembina</span>
-            </a>
-          </li>
+            <a class="nav-link collapsed" data-bs-toggle="collapse" href="#dataMenu" aria-expanded="false" aria-controls="dataMenu">
+                <i class="fas fa-layer-group"></i>
+                <span>Data User</span>
+                <span class="caret"></span> </a>
+            <div class="collapse" id="dataMenu">
+                <ul class="nav nav-collapse">
+                    <li>
+                        <a href="{{route('data-guru.index')}}"> <span class="sub-item">Data Guru</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{route('data-pembina.index')}}"> <span class="sub-item">Data Pembina</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{route('data-siswa.index')}}"> <span class="sub-item">Data Siswa</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{route('data-alumni.index')}}"> <span class="sub-item">Data Alumni</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{route('data-orang-tua.index')}}"> <span class="sub-item">Data Orang Tua</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{route('data-guru.index')}}">
-              <i class="fas fa-layer-group"></i>
-              <span>Data Guru</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{route('data-siswa.index')}}">
-              <i class="fas fa-layer-group"></i>
-              <span>Data Siswa</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{route('data-orang-tua.index')}}">
-              <i class="fas fa-layer-group"></i>
-              <span>Data Orang Tua</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{route('data-alumni.index')}}">
-              <i class="fas fa-layer-group"></i>
-              <span>Data Alumni</span>
-            </a>
-          </li>
-          {{-- <li class="nav-item">
-            <a class="nav-link" href="{{route('data-soal.index')}}">
-              <i class="fas fa-layer-group"></i>
-              <span>Data Soal</span>
-            </a>
-          </li> --}}
+            <a class="nav-link collapsed" data-bs-toggle="collapse" href="#skuSkkMenu" aria-expanded="false" aria-controls="skuSkkMenu">
+                <i class="fas fa-layer-group"></i>
+                <span>SKU SKK</span>
+                <span class="caret"></span> </a>
+            <div class="collapse" id="skuSkkMenu">
+                <ul class="nav nav-collapse">
+                    <li>
+                        <a href="{{route('manajemen_sku.index')}}"> <span class="sub-item">Data SKU</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{route('manajemen_skk.index')}}"> <span class="sub-item">Data SKK</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
         </ul>
       </div>
     </div>

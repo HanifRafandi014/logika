@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nama');
             $table->string('no_hp');
             $table->string('alamat');
+            $table->enum('status', ['Anggota', 'Pengurus Paguyuban Kelas', 'Pengurus Paguyuban Besar']);
             $table->foreignId('siswa_id')->nullable()->constrained('siswas')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();

@@ -23,4 +23,18 @@ class OrangTua extends Model
     {
         return $this->hasMany(PembayaranSpp::class);
     }
+    public function setoran_dibuat()
+    {
+        return $this->hasMany(SetoranPaguyuban::class, 'pengurus_kelas_id');
+    }
+
+    public function setoran_diterima()
+    {
+        return $this->hasMany(SetoranPaguyuban::class, 'pengurus_besar_id');
+    }
+
+    public function transaksi_keuangan()
+    {
+        return $this->hasMany(TransaksiKeuangan::class, 'pengurus_besar_id');
+    }
 }

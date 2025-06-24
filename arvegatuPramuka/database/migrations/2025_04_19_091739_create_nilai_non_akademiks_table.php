@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('nilai_non_akademiks', function (Blueprint $table) {
             $table->id();
             $table->string('kategori');
+            $table->enum('semester', ['semester 1', 'semester 2', 'semester 3', 'semester 4', 'semester 5', 'semester 6']);
             $table->decimal('nilai');
             $table->foreignId('siswa_id')->nullable()->constrained('siswas')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('pembina_id')->nullable()->constrained('pembinas')->onDelete('cascade')->onUpdate('cascade');

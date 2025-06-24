@@ -9,16 +9,31 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckRole
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, Closure $next, $role): Response
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        if(Auth::check() && Auth::user()->role === $role){
-            return $next($request);
+        // Periksa apakah pengguna sudah login
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
         }
-        return response()->json(['message' => 'Forbidden'], 403);
+
+        $user = Auth::user();
+        $userRole = $user->role; 
+        $allowedRoles = [];
+        $allowedStatuses = []; // Variabel ini tetap ada jika diperlukan untuk peran lain
+
+        // Pisahkan parameter roles dan status dari middleware
+        foreach ($roles as $param) {
+            if (str_starts_with($param, 'status:')) {
+                $allowedStatuses[] = substr($param, 7);
+            } else {
+                $allowedRoles[] = $param;
+            }
+        }
+
+        // Periksa apakah peran pengguna ada di antara peran yang diizinkan
+        if (!in_array($userRole, $allowedRoles)) {
+            return redirect('/dashboard')->with('error', 'Anda tidak memiliki peran yang sesuai untuk mengakses halaman ini.');
+        }
+        return $next($request);
     }
 }

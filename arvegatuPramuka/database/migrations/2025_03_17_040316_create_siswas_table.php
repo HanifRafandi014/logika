@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('kelas');
             $table->string('nisn');
             $table->string('angkatan');
-            $table->string('kelas_pramuka');
+            $table->boolean('jenis_kelamin');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });

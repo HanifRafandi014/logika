@@ -78,7 +78,13 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#base">
+            <a class="nav-link" href="{{route('alumni.profil')}}">
+              <i class="fas fa-layer-group"></i>
+              <span>Profil Alumni</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{route('event.index')}}">
               <i class="fas fa-layer-group"></i>
               <span>Data Event</span>
             </a>

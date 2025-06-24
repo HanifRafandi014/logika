@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 
-class PembinaImport implements ToModel
+class PembinaImport implements ToModel, WithHeadingRow, WithStartRow
 {
     public function model(array $row)
     {
@@ -36,7 +36,8 @@ class PembinaImport implements ToModel
         return new Pembina([
             'nama' => $row['nama'],
             'nip' => $row['nip'],
-            'guru_id' => $row['guru_id'],
+            'kategori' => $row['kategori'],
+            'status' => $row['status'],
             'user_id' => $user->id,
         ]);
     }

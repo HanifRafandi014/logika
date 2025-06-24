@@ -21,7 +21,7 @@
 
         <div class="mb-3">
             <label for="nama" class="form-label">Nama</label>
-            <input type="text" class="form-control" id="nama" name="nama" value="{{ $orangTua->nama }}" required>
+            <input type="text" class="form-control" id="nama" name="nama" value="{{ $orang_tua->nama }}" required>
         </div>
 
         <div class="mb-3">

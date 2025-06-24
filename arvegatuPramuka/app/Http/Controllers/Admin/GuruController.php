@@ -9,6 +9,7 @@ use App\Models\Guru;
 use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\GuruImport;
+use Illuminate\Support\Facades\Response;
 
 class GuruController extends Controller
 {
@@ -106,5 +107,16 @@ class GuruController extends Controller
     public function importForm()
     {
         return view('admin.guru.import'); // Pastikan file ini ada
+    }
+
+    public function downloadTemplate()
+    {
+        $filePath = public_path('templates/guru_template.xlsx');
+
+        if (file_exists($filePath)) {
+            return Response::download($filePath, 'guru_template.xlsx');
+        } else {
+            return redirect()->back()->with('error', 'Template file not found.');
+        }
     }
 }

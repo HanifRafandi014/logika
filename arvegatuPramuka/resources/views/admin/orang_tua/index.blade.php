@@ -45,8 +45,9 @@
                 <th>No</th>
                 <th>Nama Orang Tua</th>
                 <th>No Handphone</th>
-                <th>Alamat</th>
                 <th>Nama Siswa</th>
+                <th>Kelas</th>
+                <th>Status</th>
                 <th>Aksi</th>
               </tr>
             </thead>
@@ -56,9 +57,13 @@
                   <td>{{ $index + 1 }}</td> <!-- Nomor Urut -->
                   <td>{{ $orangTua->nama }}</td>
                   <td>{{ $orangTua->no_hp }}</td>
-                  <td>{{ $orangTua->alamat }}</td>
                   <td>{{ $orangTua->siswa->nama }}</td>
+                  <td>{{ $orangTua->siswa->kelas }}</td>
+                  <td>{{ $orangTua->status }}</td>
                   <td>
+                    <a href="{{ route('data-orang-tua.show', $orangTua->id) }}" class="btn btn-sm btn-info" title="Detail">
+                        <i class="fas fa-eye"></i>
+                    </a>
                     <a href="{{ route('data-orang-tua.edit', $orangTua->id) }}" class="btn btn-sm btn-warning" title="Edit">
                         <i class="fas fa-edit"></i>
                     </a>

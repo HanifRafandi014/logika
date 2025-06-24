@@ -78,23 +78,53 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="{{route('pembina.profil')}}">
               <i class="fas fa-layer-group"></i>
               <span>Data Pembina</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#base">
+            <a class="nav-link" href="{{route('nilai_non_akademik.index')}}">
               <i class="fas fa-layer-group"></i>
               <span>Nilai Non Akademik</span>
             </a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#base">
-              <i class="fas fa-layer-group"></i>
-              <span>Clustering Siswa</span>
-            </a>
-          </li>
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-toggle="collapse" href="#skuSkkMenu" aria-expanded="false" aria-controls="skuSkkMenu">
+                <i class="fas fa-layer-group"></i>
+                <span>Penilaian Pramuka</span>
+                <span class="caret"></span> </a>
+            <div class="collapse" id="skuSkkMenu">
+                <ul class="nav nav-collapse">
+                    <li>
+                        <a href="{{ route('nilai_sku.index') }}"> <span class="sub-item">Penilaian SKU</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('nilai_skk.index') }}"> <span class="sub-item">Penilaian SKK</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-toggle="collapse" href="#lombaMenu" aria-expanded="false" aria-controls="lombaMenu">
+                <i class="fas fa-layer-group"></i>
+                <span>Clustering Lomba</span>
+                <span class="caret"></span> </a>
+            <div class="collapse" id="lombaMenu">
+                <ul class="nav nav-collapse">
+                    <li>
+                        <a href="{{ route('lomba.index') }}"> <span class="sub-item">Lomba</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{route('pembina.rekomendasi.index')}}"> <span class="sub-item">Clustering</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
         </ul>
       </div>
     </div>

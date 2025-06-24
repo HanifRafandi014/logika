@@ -9,6 +9,8 @@ use App\Models\Siswa;
 use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SiswaImport;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Validation\Rule;
 
 class SiswaController extends Controller
 {
@@ -18,7 +20,11 @@ class SiswaController extends Controller
     } 
 
     public function create(){
-        return view('admin.siswa.create');
+        $jenisKelaminOptions = [
+            1 => 'Laki-laki',
+            0 => 'Perempuan',
+        ];
+        return view('admin.siswa.create', compact('jenisKelaminOptions'));
     }
     public function store(Request $request){
         $validatedData = $request->validate([
@@ -26,7 +32,7 @@ class SiswaController extends Controller
             'kelas' => 'required',
             'nisn' => 'required',
             'angkatan' => 'required',
-            'kelas_pramuka' => 'required',
+            'jenis_kelamin' => 'required',
             'username' => 'nullable|unique:users,username',
             'password' => 'nullable|confirmed',
         ]);
@@ -43,7 +49,7 @@ class SiswaController extends Controller
             'kelas' => $validatedData['kelas'],
             'nisn' => $validatedData['nisn'],
             'angkatan' => $validatedData['angkatan'],
-            'kelas_pramuka' => $validatedData['kelas_pramuka'],
+            'jenis_kelamin' => $validatedData['jenis_kelamin'],
             'user_id' => $user->id
         ]);
         return redirect()->route('data-siswa.index')->with('success', 'Data berhasil ditambahkan!');
@@ -51,7 +57,11 @@ class SiswaController extends Controller
     public function edit($id){
         $siswa = Siswa::findOrFail($id);
         $user = User::findOrFail($siswa->user_id);
-        return view('admin.siswa.edit', compact('siswa', 'user'));
+        $jenisKelaminOptions = [
+            1 => 'Laki-laki',
+            0 => 'Perempuan',
+        ];
+        return view('admin.siswa.edit', compact('siswa', 'user', 'jenisKelaminOptions'));
     }
     public function update(Request $request,  $id){
         $siswa = Siswa::findOrFail($id);
@@ -62,7 +72,7 @@ class SiswaController extends Controller
             'kelas' => 'required',
             'nisn' => 'required',
             'angkatan' => 'required',
-            'kelas_pramuka' => 'required',
+            'jenis_kelamin' => 'required',
             'username' => 'nullable|unique:users,username,' . $user->id,
             'password' => 'nullable|confirmed',
         ]);
@@ -72,7 +82,7 @@ class SiswaController extends Controller
             'kelas' => $validatedData['kelas'],
             'nisn' => $validatedData['nisn'],
             'angkatan' => $validatedData['angkatan'],
-            'kelas_pramuka' => $validatedData['kelas_pramuka'],
+            'jenis_kelamin' => $validatedData['jenis_kelamin'],
         ]);
 
         $user->username = $validatedData['username'];
@@ -92,7 +102,8 @@ class SiswaController extends Controller
 
     public function show($id)
     {
-        return redirect()->route('data-siswa.index');
+        $siswa = Siswa::with(['user', 'nilai_akademik', 'nilai_non_akademik'])->findOrFail($id);
+        return view('admin.siswa.show', compact('siswa'));
     }
 
     public function import(Request $request)
@@ -108,5 +119,16 @@ class SiswaController extends Controller
     public function importForm()
     {
         return view('admin.siswa.import'); // Pastikan file ini ada
+    }
+
+    public function downloadTemplate()
+    {
+        $filePath = public_path('templates/siswa_template.xlsx');
+
+        if (file_exists($filePath)) {
+            return Response::download($filePath, 'siswa_template.xlsx');
+        } else {
+            return redirect()->back()->with('error', 'Template file not found.');
+        }
     }
 }

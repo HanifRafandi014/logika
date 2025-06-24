@@ -38,4 +38,12 @@ class Siswa extends Model
     {
         return $this->hasMany(PembayaranSpp::class);
     }
+    public function penilaian_skk()
+    {
+        return $this->hasMany(PenilaianSkk::class, 'pembina_id');
+    }
+    public function penilaian_sku()
+    {
+        return $this->hasMany(PenilaianSku::class, 'pembina_id');
+    }
 }

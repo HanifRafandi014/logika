@@ -19,4 +19,9 @@ class NilaiNonAkademik extends Model
     {
         return $this->belongsTo(Pembina::class);
     }
+
+    public function lomba()
+    {
+        return $this->belongsTo(Lomba::class);
+    }
 }

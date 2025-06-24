@@ -15,12 +15,12 @@ class EditProfilOrangTuaController extends Controller
     public function editProfilOrangTua()
     {
         $user = Auth::user();
-        $orangTua = $user->orangTua;
-        if(!$orangTua){
-            $orangTua = new OrangTua();
+        $orang_tua = $user->orang_tua;
+        if(!$orang_tua){
+            $orang_tua = new OrangTua();
         }
 
-        return view('orang_tua.editProfil-orangTua', compact('user', 'orangTua'));
+        return view('orang_tua.editProfil-orangTua', compact('user', 'orang_tua'));
     }
 
     public function updateProfilOrangTua(Request $request)

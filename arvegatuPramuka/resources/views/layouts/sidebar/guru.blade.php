@@ -84,7 +84,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#base">
+            <a class="nav-link" href="{{route('nilai_akademik.index')}}">
               <i class="fas fa-layer-group"></i>
               <span>Nilai Akademik</span>
             </a>
