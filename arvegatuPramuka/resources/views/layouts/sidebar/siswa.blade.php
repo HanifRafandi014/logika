@@ -94,6 +94,24 @@
                 </ul>
             </div>
         </li>
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-toggle="collapse" href="#pramuka" aria-expanded="false" aria-controls="pramukaMenu">
+                <i class="fas fa-layer-group"></i>
+                <span>Penempuhan Pramuka</span>
+                <span class="caret"></span> </a>
+            <div class="collapse" id="pramuka">
+                <ul class="nav nav-collapse">
+                    <li>
+                        <a href="#"> <span class="sub-item">SKU</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#"> <span class="sub-item">SKK</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
         </ul>
       </div>
     </div>

@@ -31,7 +31,7 @@ class LihatNilaiSiswaController extends Controller
         }
 
         $selectedSemester = $request->input('semester');
-        $semesters = ['semester 1', 'semester 2', 'semester 3', 'semester 4', 'semester 5', 'semester 6'];
+        $semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6'];
 
         return [
             'studentName' => $studentName,

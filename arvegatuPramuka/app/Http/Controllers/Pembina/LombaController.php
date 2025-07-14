@@ -5,71 +5,56 @@ namespace App\Http\Controllers\Pembina;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Lomba;
-use App\Models\NilaiAkademik;
-use App\Models\NilaiNonAkademik;
+use App\Models\VariabelClustering;
 
 class LombaController extends Controller
 {
     public function index()
     {
-        // No need for 'with' on relationships that are now JSON columns
-        $lombas = Lomba::all();
+        $lombas = Lomba::with('variabel')->get(); // pastikan relasi variabel didefinisikan
         return view('pembina.lomba.index', compact('lombas'));
     }
 
     public function create()
     {
-        $nilaiAkademiks = NilaiAkademik::all();
-        $nilaiNonAkademiks = NilaiNonAkademik::all();
-        return view('pembina.lomba.create', compact('nilaiAkademiks', 'nilaiNonAkademiks'));
+        $variabels = VariabelClustering::all();
+        return view('pembina.lomba.create', compact('variabels'));
     }
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'jenis_lomba'           => 'required|string|max:255',
-            'jumlah_siswa'          => 'required|integer',
-            'status'                => 'boolean',
-            'nilai_akademiks'    => 'nullable|array',
-            'nilai_akademiks.*'  => 'exists:nilai_akademiks,id', // Ensure each ID exists
-            'nilai_non_akademiks' => 'nullable|array',
-            'nilai_non_akademiks.*' => 'exists:nilai_non_akademiks,id', // Ensure each ID exists
+        $validated = $request->validate([
+            'variabel_clustering_id' => 'required|exists:variabel_clusterings,id',
+            'jumlah_siswa'           => 'required|integer|min:1',
+            'status'                 => 'required|boolean',
         ]);
 
-        // Convert checkbox status to boolean
-        $validatedData['status'] = $request->has('status');
-        Lomba::create($validatedData);
+        Lomba::create($validated);
 
-        return redirect()->route('lomba.index')->with('success', 'Data lomba berhasil ditambahkan!');
+        return redirect()->route('lomba.index')->with('success', 'Lomba berhasil ditambahkan!');
     }
 
     public function edit($id)
     {
         $lomba = Lomba::findOrFail($id);
-        $nilaiAkademiks = NilaiAkademik::all();
-        $nilaiNonAkademiks = NilaiNonAkademik::all();
-        return view('pembina.lomba.edit', compact('lomba', 'nilaiAkademiks', 'nilaiNonAkademiks'));
+        $variabels = VariabelClustering::all();
+
+        return view('pembina.lomba.edit', compact('lomba', 'variabels'));
     }
 
     public function update(Request $request, $id)
     {
         $lomba = Lomba::findOrFail($id);
 
-        $validatedData = $request->validate([
-            'jenis_lomba'           => 'required|string|max:255',
-            'jumlah_siswa'          => 'required|integer',
-            'status'                => 'boolean',
-            'nilai_akademiks'    => 'nullable|array',
-            'nilai_akademiks.*'  => 'exists:nilai_akademiks,id',
-            'nilai_non_akademiks' => 'nullable|array',
-            'nilai_non_akademiks.*' => 'exists:nilai_non_akademiks,id',
+        $validated = $request->validate([
+            'variabel_clustering_id' => 'required|exists:variabel_clusterings,id',
+            'jumlah_siswa'           => 'required|integer|min:1',
+            'status'                 => 'required|boolean',
         ]);
 
-        $validatedData['status'] = $request->has('status');
+        $lomba->update($validated);
 
-        $lomba->update($validatedData);
-
-        return redirect()->route('lomba.index')->with('success', 'Data lomba berhasil diperbarui!');
+        return redirect()->route('lomba.index')->with('success', 'Lomba berhasil diperbarui!');
     }
 
     public function destroy($id)
@@ -77,7 +62,6 @@ class LombaController extends Controller
         $lomba = Lomba::findOrFail($id);
         $lomba->delete();
 
-        return redirect()->route('lomba.index')->with('success', 'Data lomba berhasil dihapus!');
+        return redirect()->route('lomba.index')->with('success', 'Lomba berhasil dihapus!');
     }
 }
-

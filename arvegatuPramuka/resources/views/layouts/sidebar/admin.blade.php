@@ -1,38 +1,3 @@
-<!-- Sidebar -->
-{{-- <style>
-.sidebar .nav-item {
-  background-color: #1E2A38; /* warna dasar */
-  border-radius: 8px;
-  margin: 4px 8px;
-  transition: all 0.3s ease;
-}
-
-/* Hanya nav-item.active yang putih */
-.sidebar .nav-item.active {
-  background-color: #ffffff;
-  box-shadow: inset 0 0 0 2px #007bff;
-}
-
-.sidebar .nav-item a {
-  color: white;
-  display: flex;
-  align-items: center;
-  padding: 10px 15px;
-  border-radius: 8px;
-  text-decoration: none;
-}
-
-.sidebar .nav-item.active a {
-  color: black;
-  font-weight: bold;
-}
-
-/* Hover hanya ubah background jika tidak aktif */
-.sidebar .nav-item:not(.active):hover {
-  background-color: #343a40;
-}
-</style> --}}
-
 <div class="sidebar">
     <div class="sidebar-logo">
       <!-- Logo Header -->
@@ -104,7 +69,7 @@
                 </ul>
             </div>
         </li>
-          <li class="nav-item">
+        <li class="nav-item">
             <a class="nav-link collapsed" data-bs-toggle="collapse" href="#skuSkkMenu" aria-expanded="false" aria-controls="skuSkkMenu">
                 <i class="fas fa-layer-group"></i>
                 <span>SKU SKK</span>
@@ -112,11 +77,39 @@
             <div class="collapse" id="skuSkkMenu">
                 <ul class="nav nav-collapse">
                     <li>
-                        <a href="{{route('manajemen_sku.index')}}"> <span class="sub-item">Data SKU</span>
+                        <a href="{{route('manajemen_sku.index')}}"> <span class="sub-item">Rubik Penilaian SKU</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{{route('manajemen_skk.index')}}"> <span class="sub-item">Data SKK</span>
+                        <a href="{{route('manajemen_skk.index')}}"> <span class="sub-item">Rubik Penilaian SKK</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-toggle="collapse" href="#biayaMenu" aria-expanded="false" aria-controls="biayaMenu">
+                <i class="fas fa-layer-group"></i>
+                <span>Biaya Iuran</span>
+                <span class="caret"></span> </a>
+            <div class="collapse" id="biayaMenu">
+                <ul class="nav nav-collapse">
+                    <li>
+                        <a href="{{route('data-besaran-biaya.index')}}"> <span class="sub-item">Biaya Paguyuban</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-toggle="collapse" href="#variabelMenu" aria-expanded="false" aria-controls="variabelMenu">
+                <i class="fas fa-layer-group"></i>
+                <span>Variabel Kompetensi</span>
+                <span class="caret"></span> </a>
+            <div class="collapse" id="variabelMenu">
+                <ul class="nav nav-collapse">
+                    <li>
+                        <a href="{{ route('data-variabel.index') }}"> <span class="sub-item">Variabel Clustering</span>
                         </a>
                     </li>
                 </ul>

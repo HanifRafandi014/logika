@@ -35,6 +35,7 @@ class PembinaImport implements ToModel, WithHeadingRow, WithStartRow
 
         return new Pembina([
             'nama' => $row['nama'],
+            'kelas' => $row['kelas'],
             'nip' => $row['nip'],
             'kategori' => $row['kategori'],
             'status' => $row['status'],

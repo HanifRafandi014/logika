@@ -37,6 +37,7 @@
         <div class="mb-3">
             <label for="foto_profil" class="form-label">Foto Profil</label>
             <input type="file" class="form-control" id="foto_profil" name="foto_profil">
+            <small class="form-text text-muted">Format yang diizinkan: JPEG, PNG, JPG, GIF, SVG. Ukuran maksimal: 2MB.</small>
         </div>
 
         <button type="submit" class="btn btn-primary me-2" style="font-size: 11px;" title="Update">

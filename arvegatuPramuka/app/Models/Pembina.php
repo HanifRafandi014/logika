@@ -26,4 +26,9 @@ class Pembina extends Model
     {
         return $this->hasMany(PenilaianSku::class, 'pembina_id');
     }
+
+    public function siswa()
+    {
+        return $this->hasMany(Siswa::class);
+    }
 }

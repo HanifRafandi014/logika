@@ -59,6 +59,10 @@
                     <input type="text" class="form-control" id="nama" name="nama" value="{{ $pembina->nama ?? '' }}">
                 </div>
                 <div class="mb-3">
+                    <label for="kelas">Kelas</label>
+                    <input type="text" class="form-control" id="kelas" name="kelas" value="{{ $pembina->kelas ?? '' }}">
+                </div>
+                <div class="mb-3">
                     <label for="kategori">Kategori</label>
                     <input type="text" class="form-control" id="kategori" name="kategori" value="{{ $pembina->kategori ?? '' }}">
                 </div>

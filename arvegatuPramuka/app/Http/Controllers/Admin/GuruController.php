@@ -24,6 +24,7 @@ class GuruController extends Controller
     public function store(Request $request){
         $validatedData = $request->validate([
             'nama' => 'nullable',
+            'kelas' => 'required',
             'mata_pelajaran' => 'nullable',
             'nip' => 'nullable',
             'pembina_pramuka' => 'nullable|boolean',
@@ -41,6 +42,7 @@ class GuruController extends Controller
         // Create guru
         $guru = Guru::create([
             'nama' => $validatedData['nama'],
+            'kelas' => $validatedData['kelas'],
             'mata_pelajaran' => $validatedData['mata_pelajaran'],
             'nip' => $validatedData['nip'],
             'pembina_pramuka' => $validatedData['pembina_pramuka'],
@@ -59,6 +61,7 @@ class GuruController extends Controller
 
         $validatedData = $request->validate([
             'nama' => 'nullable',
+            'kelas' => 'required',
             'mata_pelajaran' => 'nullable',
             'nip' => 'nullable',
             'pembina_pramuka' => 'nullable|boolean',
@@ -68,6 +71,7 @@ class GuruController extends Controller
 
         $guru->update([
             'nama' => $validatedData['nama'],
+            'kelas' => $validatedData['kelas'],
             'mata_pelajaran' => $validatedData['mata_pelajaran'],
             'nip' => $validatedData['nip'],
             'pembina_pramuka' => $validatedData['pembina_pramuka'],

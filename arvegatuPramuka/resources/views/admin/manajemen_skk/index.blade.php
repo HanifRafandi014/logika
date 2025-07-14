@@ -35,7 +35,7 @@
             <a href="{{ route('manajemen_skk.create') }}" class="btn btn-primary btn-sm me-2" title="Tambah SKK">
                 <i class="fa fa-plus-square" aria-hidden="true"></i>
             </a>
-        </div>     
+        </div>    
       </div>
       <div class="card-body">
         <div class="table-responsive">
@@ -43,8 +43,9 @@
             <thead>
               <tr>
                 <th>No</th>
-                <th>Keterangan SKK</th>
                 <th>Jenis SKK</th>
+                <th>Kelompok</th>
+                <th>Kategori</th>
                 <th>Tingkatan</th>
                 <th>Aksi</th>
               </tr>
@@ -53,10 +54,14 @@
                 @foreach ($skks as $index => $skk)
                 <tr>
                   <td>{{ $index + 1 }}</td> <!-- Nomor Urut -->
-                  <td>{{ $skk->keterangan_skk }}</td>
                   <td>{{ $skk->jenis_skk }}</td>
+                  <td>{{ $skk->kelompok }}</td>
+                  <td>{{ $skk->kategori }}</td>
                   <td>{{ $skk->tingkatan }}</td>
                   <td>
+                    <a href="{{ route('manajemen_skk.show', $skk->id) }}" class="btn btn-sm btn-info" title="Lihat Detail">
+                        <i class="fas fa-eye"></i>
+                    </a>
                     <a href="{{ route('manajemen_skk.edit', $skk->id) }}" class="btn btn-sm btn-warning" title="Edit">
                         <i class="fas fa-edit"></i>
                     </a>
@@ -67,12 +72,12 @@
                         <i class="fas fa-trash-alt"></i>
                       </button>
                     </form>
-                  </td>                  
+                  </td>           
                 </tr>
                 @endforeach
             </tbody>
           </table>
-
+  
         </div>
       </div>
     </div>
@@ -89,4 +94,3 @@
       });
     });
   </script>
-  

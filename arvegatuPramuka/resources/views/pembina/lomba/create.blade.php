@@ -12,80 +12,71 @@
         </div>
         <div class="card-body">
             <form action="{{ route('lomba.store') }}" method="POST">
-                @csrf {{-- Token CSRF for form security --}}
+                @csrf
 
                 <div class="mb-3">
                     <label for="jenis_lomba" class="form-label">Jenis Lomba</label>
-                    <input type="text" class="form-control @error('jenis_lomba') is-invalid @enderror" id="jenis_lomba" name="jenis_lomba" value="{{ old('jenis_lomba') }}" required>
-                    @error('jenis_lomba')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
+                    <select name="variabel_clustering_id" id="dropdown-lomba" class="form-select @error('variabel_clustering_id') is-invalid @enderror" required>
+                        <option value="">-- Pilih Jenis Lomba --</option>
+                        @foreach ($variabels as $v)
+                            <option value="{{ $v->id }}"
+                                data-akademik='@json($v->variabel_akademiks)'
+                                data-nonakademik='@json($v->variabel_non_akademiks)'
+                                {{ old('variabel_clustering_id') == $v->id ? 'selected' : '' }}>
+                                {{ $v->jenis_lomba }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('variabel_clustering_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Variabel Akademik</label>
+                    <textarea class="form-control" id="variabel-akademik" rows="2" readonly></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Variabel Non Akademik</label>
+                    <textarea class="form-control" id="variabel-non-akademik" rows="2" readonly></textarea>
                 </div>
 
                 <div class="mb-3">
                     <label for="jumlah_siswa" class="form-label">Jumlah Siswa</label>
-                    <input type="number" class="form-control @error('jumlah_siswa') is-invalid @enderror" id="jumlah_siswa" name="jumlah_siswa" value="{{ old('jumlah_siswa') }}" required min="1">
+                    <input type="number" class="form-control @error('jumlah_siswa') is-invalid @enderror" name="jumlah_siswa" value="{{ old('jumlah_siswa') }}" required min="1">
                     @error('jumlah_siswa')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Mata Pelajaran</label>
-                    @foreach($nilaiAkademiks as $nilaiAkademik)
-                        <div class="form-check">
-                            <input class="form-check-input @error('nilai_akademiks') is-invalid @enderror" type="checkbox" name="nilai_akademiks[]" id="nilai_akademik_{{ $nilaiAkademik->id }}" value="{{ $nilaiAkademik->id }}"
-                                {{ in_array($nilaiAkademik->id, old('nilai_akademiks', [])) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="nilai_akademik_{{ $nilaiAkademik->id }}">
-                                {{ $nilaiAkademik->mata_pelajaran }}
-                            </label>
-                        </div>
-                    @endforeach
-                    {{-- Display error for the group of checkboxes --}}
-                    @error('nilai_akademiks')
-                        <div class="invalid-feedback d-block"> {{-- Use d-block to make the error visible for checkboxes --}}
-                            {{ $message }}
-                        </div>
-                    @enderror
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Kategori Terkait (Nilai Non-Akademik)</label>
-                    @foreach($nilaiNonAkademiks as $nilaiNonAkademik)
-                        <div class="form-check">
-                            <input class="form-check-input @error('nilai_non_akademiks') is-invalid @enderror" type="checkbox" name="nilai_non_akademiks[]" id="nilai_non_akademik_{{ $nilaiNonAkademik->id }}" value="{{ $nilaiNonAkademik->id }}"
-                                {{ in_array($nilaiNonAkademik->id, old('nilai_non_akademiks', [])) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="nilai_non_akademik_{{ $nilaiNonAkademik->id }}">
-                                {{ $nilaiNonAkademik->kategori }}
-                            </label>
-                        </div>
-                    @endforeach
-                    {{-- Display error for the group of checkboxes --}}
-                    @error('nilai_non_akademiks')
-                        <div class="invalid-feedback d-block">
-                            {{ $message }}
-                        </div>
-                    @enderror
-                </div>
-
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input @error('status') is-invalid @enderror" id="status" name="status" value="1" {{ old('status') ? 'checked' : '' }}>
-                    <label class="form-check-label" for="status">Status Aktif</label>
+                    <label for="status" class="form-label">Status Kompetensi</label>
+                    <select name="status" class="form-select @error('status') is-invalid @enderror" required>
+                        <option value="1" {{ old('status') == 1 ? 'selected' : '' }}>Aktif</option>
+                        <option value="0" {{ old('status') == 0 ? 'selected' : '' }}>Tidak Aktif</option>
+                    </select>
                     @error('status')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
-                <button type="submit" class="btn btn-primary">Simpan Lomba</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
                 <a href="{{ route('lomba.index') }}" class="btn btn-secondary">Batal</a>
             </form>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.getElementById('dropdown-lomba').addEventListener('change', function () {
+    const selected = this.options[this.selectedIndex];
+    const akademik = JSON.parse(selected.dataset.akademik || '[]');
+    const nonAkademik = JSON.parse(selected.dataset.nonakademik || '[]');
+    document.getElementById('variabel-akademik').value = akademik.join(', ');
+    document.getElementById('variabel-non-akademik').value = nonAkademik.join(', ');
+});
+</script>
+@endpush

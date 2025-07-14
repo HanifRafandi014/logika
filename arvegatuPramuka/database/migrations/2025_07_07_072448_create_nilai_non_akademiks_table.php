@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('nilai_akademiks', function (Blueprint $table) {
+        Schema::create('nilai_non_akademiks', function (Blueprint $table) {
             $table->id();
-            $table->string('mata_pelajaran');
-            $table->enum('semester', ['semester 1', 'semester 2', 'semester 3', 'semester 4', 'semester 5', 'semester 6']);
+            $table->string('kategori');
             $table->decimal('nilai');
             $table->foreignId('siswa_id')->nullable()->constrained('siswas')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('guru_id')->nullable()->constrained('gurus')->onDelete('cascade')->onUpdate('cascade');

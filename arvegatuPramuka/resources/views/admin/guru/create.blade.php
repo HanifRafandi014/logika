@@ -18,6 +18,10 @@
           <input type="text" name="nama" class="form-control" required>
         </div>
         <div class="form-group">
+            <label>Kelas</label>
+            <input type="text" name="kelas" class="form-control" required>
+          </div>
+        <div class="form-group">
             <label>Mata Pelajaran</label>
             <input type="text" name="mata_pelajaran" class="form-control" required>
           </div>

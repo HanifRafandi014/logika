@@ -25,6 +25,15 @@
                     @enderror
                 </div>
                 <div class="form-group mb-3">
+                    <label for="kelas">Kelas</label>
+                    <input type="text" name="kelas" id="kelas" class="form-control @error('kelas') is-invalid @enderror" value="{{ old('kelas', $pembina->kelas) }}">
+                    @error('kelas')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+                <div class="form-group mb-3">
                     <label for="nip">NIP</label>
                     <input type="text" name="nip" id="nip" class="form-control @error('nip') is-invalid @enderror" value="{{ old('nip', $pembina->nip) }}">
                     @error('nip')

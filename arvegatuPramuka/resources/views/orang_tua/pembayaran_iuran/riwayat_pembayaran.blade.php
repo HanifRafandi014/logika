@@ -5,14 +5,47 @@
 
 @section('content')
 <style>
-    /* Add some basic styling to mimic the image look */
+    /* Styling for the overall container and card */
+    .container {
+        padding-top: 20px;
+    }
+    .card {
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-top: 20px; /* Space from the header */
+    }
+    .card-body {
+        padding: 20px;
+    }
+
+    /* Header styling */
+    .header-section {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .back-arrow {
+        font-size: 1.5em; /* Larger arrow */
+        color: #333;
+        margin-right: 15px;
+        text-decoration: none;
+    }
+    .page-title {
+        margin-bottom: 0;
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #333;
+    }
+
+    /* Payment list item styling */
     .payment-list-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 15px 0;
+        padding: 15px; /* Consistent padding */
         border-bottom: 1px solid #eee;
-        color: #333; /* Darker text for better readability */
+        color: #333;
+        background-color: #fff; /* White background for list items */
     }
     .payment-list-item:last-child {
         border-bottom: none; /* No border for the last item */
@@ -22,53 +55,52 @@
     }
     .payment-amount {
         font-weight: bold;
-        font-size: 1.1em; /* Slightly larger for amount */
-        color: #333; /* Darker color for amount */
+        font-size: 1.2em; /* Larger for amount */
+        color: #007bff; /* Blue for emphasis, matching image */
+        margin-bottom: 5px; /* Space between amount and date */
     }
     .payment-date {
         font-size: 0.9em;
-        color: #888; /* Lighter color for date */
+        color: #888;
     }
-    .payment-status {
-        font-weight: bold;
-        color: green; /* Default to green for "Lunas" */
+    .payment-status-container {
         display: flex;
         align-items: center;
     }
-    .payment-status.unpaid {
-        color: orange; /* Orange for "Belum Lunas" */
+    .payment-status-text {
+        font-weight: bold;
+        font-size: 0.95em;
+    }
+    .payment-status-text.verified {
+        color: green;
+    }
+    .payment-status-text.unverified {
+        color: orange; /* Orange for Belum Diverifikasi */
     }
     .arrow-icon {
         margin-left: 10px;
-        color: #ccc; /* Lighter color for the arrow */
+        color: #ccc;
     }
-    .card {
-        box-shadow: none; /* Remove card shadow if not desired */
-        border: none; /* Remove card border */
-    }
-    .card-header {
-        background-color: transparent; /* Transparent header background */
-        border-bottom: none; /* No header border */
-        font-weight: bold;
-        font-size: 1.2em; /* Larger header text */
-        padding-left: 0; /* Align with list items */
-    }
-    .card-body {
-        padding: 0; /* Remove default card body padding */
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .payment-list-item {
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+        }
+        .payment-status-container {
+            margin-top: 10px;
+        }
     }
 </style>
 
 <div class="container">
-    {{-- Remove the card header and tabs if you want a cleaner look like the image --}}
-    {{-- <div class="card-header"> --}}
-    {{--     Riwayat Pembayaran --}}
-    {{-- </div> --}}
-
-    <div class="d-flex align-items-center mb-3">
-        <a href="{{ url()->previous() }}" class="text-decoration-none text-dark me-2">
-            <i class="fas fa-arrow-left fa-lg"></i> {{-- Assuming you have Font Awesome for the arrow icon --}}
+    <div class="header-section">
+        <a href="{{ url()->previous() }}" class="back-arrow">
+            <i class="fas fa-arrow-left"></i> {{-- Assuming you have Font Awesome for the arrow icon --}}
         </a>
-        <h4 class="mb-0">Riwayat Pembayaran</h4>
+        <h4 class="page-title">Riwayat Pembayaran Paguyuban Orang Tua</h4>
     </div>
 
     <div class="card">
@@ -81,22 +113,37 @@
                         <div class="payment-list-item">
                             <div class="payment-details">
                                 <div class="payment-amount">
-                                    Rp {{ number_format($pembayaran->jumlah, 0, ',', '.') }}
+                                    {{-- Menggunakan total_bayar_final dari accessor model --}}
+                                    Rp {{ number_format($pembayaran->total_bayar_final, 0, ',', '.') }}
                                 </div>
                                 <div class="payment-date">
-                                    {{ \Carbon\Carbon::parse($pembayaran->created_at)->format('d M Y') }}
+                                    {{-- Menampilkan tanggal dibuatnya record pembayaran --}}
+                                    {{ \Carbon\Carbon::parse($pembayaran->created_at)->translatedFormat('d M Y') }}
                                 </div>
-                                {{-- Optionally display student name if desired, but image doesn't show it explicitly --}}
-                                {{-- <div class="payment-student">
-                                    Untuk Siswa: {{ $pembayaran->siswa->nama ?? 'N/A' }}
+                                {{-- Opsional: Tampilkan bulan-bulan yang dibayar jika ingin detail lebih --}}
+                                {{-- <div class="payment-months">
+                                    @if($pembayaran->bulan_bayar)
+                                        @php
+                                            $decodedMonths = json_decode($pembayaran->bulan_bayar, true);
+                                        @endphp
+                                        @if(is_array($decodedMonths))
+                                            Bulan: {{ implode(', ', $decodedMonths) }}
+                                        @else
+                                            Bulan: N/A
+                                        @endif
+                                    @else
+                                        Bulan: N/A
+                                    @endif
                                 </div> --}}
                             </div>
-                            <div class="payment-status @if(!$pembayaran->status_pembayaran) unpaid @endif">
-                                @if($pembayaran->status_pembayaran)
-                                    Lunas
-                                @else
-                                    Belum Lunas
-                                @endif
+                            <div class="payment-status-container">
+                                <div class="payment-status-text @if($pembayaran->status_pembayaran) verified @else unverified @endif">
+                                    @if($pembayaran->status_pembayaran)
+                                        Sudah Diverifikasi
+                                    @else
+                                        Belum Diverifikasi
+                                    @endif
+                                </div>
                                 <i class="fas fa-chevron-right arrow-icon"></i> {{-- Font Awesome arrow icon --}}
                             </div>
                         </div>

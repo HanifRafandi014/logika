@@ -14,25 +14,27 @@ class ManajemenSkuController extends Controller
     }
 
     public function create(){
-        $tingkatans = ['ramu', 'rakit', 'terap'];
+        $tingkatans = ['Ramu', 'Rakit', 'Terap'];
         return view('admin.manajemen_sku.create', compact('tingkatans'));
     }
     public function store(Request $request){
         $validatedData = $request->validate([
             'keterangan_sku' => 'required|string',
-            'tingkatan' => 'required|in:ramu,rakit,terap',
+            'item_pencapaian_sku' => 'required|string',
+            'tingkatan' => 'required|in:Ramu,Rakit,Terap',
         ]);
 
         // Create guru
         $sku = ManajemenSku::create([
             'keterangan_sku' => $validatedData['keterangan_sku'],
+            'item_pencapaian_sku' => $validatedData['item_pencapaian_sku'],
             'tingkatan' => $validatedData['tingkatan'],
         ]);
         return redirect()->route('manajemen_sku.index')->with('success', 'Data berhasil ditambahkan!');
     }
     public function edit($id){
         $sku = ManajemenSku::findOrFail($id);
-        $tingkatans = ['ramu', 'rakit', 'terap'];
+        $tingkatans = ['Ramu', 'Rakit', 'Terap'];
         return view('admin.manajemen_sku.edit', compact('sku', 'tingkatans'));
     }
     public function update(Request $request,  $id){
@@ -40,11 +42,13 @@ class ManajemenSkuController extends Controller
 
         $validatedData = $request->validate([
             'keterangan_sku' => 'required|string',
-            'tingkatan' => 'required|in:ramu,rakit,terap',
+            'item_pencapaian_sku' => 'required|string',
+            'tingkatan' => 'required|in:Ramu,Rakit,Terap',
         ]);
 
         $sku->update([
             'keterangan_sku' => $validatedData['keterangan_sku'],
+            'item_pencapaian_sku' => $validatedData['item_pencapaian_sku'],
             'tingkatan' => $validatedData['tingkatan'],
         ]);
 

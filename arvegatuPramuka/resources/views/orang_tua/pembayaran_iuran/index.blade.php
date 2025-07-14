@@ -1,147 +1,284 @@
-<head>
-    <title>Daftar Pembayaran Iuran</title>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <style>
-        .img-thumbnail {
-            max-width: 100px;
-            height: auto;
-        }
-        /* Input search styling */
-        .column-search {
-            width: 100%;
-            padding: 6px 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .column-search:focus {
-            border-color: #66afe9;
-            outline: none;
-            box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
-        }
-    </style>
-</head>
-
+kode orang_tua.pembayaran_iuran.index :
 @extends('layouts.main')
+
 @section('sidebar')
     @include('layouts.sidebar.orang_tua')
 @endsection
 
 @section('content')
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="card-title mb-0">Pembayaran Iuran Paguyuban</h4>
-                <div class="d-flex ms-auto">
-                    <a href="{{ route('pembayaran-iuran.create') }}" class="btn btn-primary btn-sm me-2" title="Tambah Pembayaran Iuran">
-                        <i class="fa fa-plus-square" aria-hidden="true"></i>
-                    </a>
+<style>
+    .card-body {
+        padding: 10px;
+    }
+
+    .card-header {
+        padding: 10px 15px;
+    }
+
+    .info-box-row {
+        margin-bottom: 10px !important;
+    }
+
+    .info-box {
+        padding: 10px !important;
+    }
+
+    .info-box h6 {
+        font-size: 0.8rem;
+        margin-bottom: 3px !important;
+    }
+
+    .info-box h5 {
+        font-size: 1.1rem;
+        margin-bottom: 0 !important;
+    }
+
+    .card-body > p {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+    }
+
+    .table.table-bordered th,
+    .table.table-bordered td {
+        padding: 2px 6px;
+        vertical-align: middle;
+        font-size: 0.75rem;
+        height: 26px;
+    }
+
+    .form-check {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    .form-check-input {
+        margin-top: 0;
+        margin-left: 0;
+    }
+
+    .form-check-label {
+        margin-bottom: 0;
+        font-size: 0.7rem;
+    }
+
+    .badge {
+        font-size: 0.65rem;
+        padding: 0.2em 0.4em;
+    }
+
+    .btn-sm.btn-info {
+        font-size: 0.65rem;
+        padding: 2px 6px;
+        line-height: 1;
+    }
+
+    .modal-title {
+        font-size: 0.85rem;
+    }
+
+    .modal-body img {
+        max-height: 300px;
+    }
+
+    @media (max-width: 768px) {
+        .info-box-row .col-md-3 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            margin-bottom: 10px;
+        }
+    }
+</style>
+
+
+<div class="col-md-12">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">Pembayaran Paguyuban Orang Tua</h4>
+        </div>
+        <div class="card-body">
+            @if (session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            <div class="row g-3 mb-4 info-box-row">
+                <div class="col-md-3 col-6">
+                    <div class="info-box shadow-sm rounded p-3 bg-light border-start border-4 border-primary">
+                        <h6 class="text-muted mb-1">Nama Orang Tua</h6>
+                        <h5 class="mb-0 text-primary">{{ Auth::user()->orang_tua->nama ?? 'N/A' }}</h5>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="info-box shadow-sm rounded p-3 bg-light border-start border-4 border-success">
+                        <h6 class="text-muted mb-1">Nama Siswa</h6>
+                        <h5 class="mb-0 text-success">{{ Auth::user()->orang_tua->siswa->nama ?? 'N/A' }}</h5>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="info-box shadow-sm rounded p-3 bg-light border-start border-4 border-warning">
+                        <h6 class="text-muted mb-1">Kelas Siswa</h6>
+                        <h5 class="mb-0 text-warning">{{ Auth::user()->orang_tua->siswa->kelas ?? 'N/A' }}</h5>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="info-box shadow-sm rounded p-3 bg-light border-start border-4 border-danger">
+                        <h6 class="text-muted mb-1">Total Biaya Iuran</h6>
+                        <h5 class="mb-0 text-danger" id="total-biaya">
+                             Rp. 0
+                        </h5>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="info-box shadow-sm rounded p-3 bg-light border-start border-4 border-secondary">
+                        <h6 class="text-muted mb-1">Total yang Sudah Dibayarkan</h6>
+                        <h5 class="mb-0 text-secondary" id="total-biaya-dibayar">
+                            Rp. {{ number_format($totalSudahDibayar, 0, ',', '.') }}
+                        </h5>
+                    </div>
                 </div>
             </div>
-            <div class="card-body">
-                @if (session('success'))
-                    <div class="alert alert-success">
-                        {{ session('success') }}
-                    </div>
-                @endif
+
+            <p><b>*Biaya per bulan = Rp. {{ number_format($besaranBiaya->total_biaya ?? 0, 0, ',', '.') }} * jumlah bulan yang dibayarkan</b></p>
+
+            <form action="{{ route('pembayaran-iuran.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="orang_tua_id" value="{{ Auth::user()->orang_tua->id ?? '' }}">
+                <input type="hidden" name="siswa_id" value="{{ Auth::user()->orang_tua->siswa_id ?? '' }}">
 
                 <div class="table-responsive">
-                    <table id="multi-filter-select" class="display table table-striped table-hover">
+                    <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>No</th>
-                                <th>Nama Orang Tua</th>
-                                <th>Status</th>
-                                <th>Bulan Bayar</th>
-                                <th>Jumlah</th>
-                                <th>Bukti Bayar</th>
+                                <th>Bulan</th>
+                                <th>Tahun</th> {{-- Kolom Tahun --}}
                                 <th>Status Bayar</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($pembayaranSpps as $index => $pembayaranIuran)
+                            @foreach ($bulanDalamTahun as $bulanAngka => $bulanNama)
                                 <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>{{ $pembayaranIuran->orang_tua->nama ?? 'N/A' }}</td>
-                                    <td>{{ $pembayaranIuran->orang_tua->status ?? 'N/A' }}</td>
+                                    <td>{{ $bulanNama }}</td>
                                     <td>
-                                        @if ($pembayaranIuran->bulan_bayar)
-                                            {{ \Carbon\Carbon::parse($pembayaranIuran->bulan_bayar)->translatedFormat('F Y') }}
+                                        @if (isset($statusBulanan[$bulanAngka]))
+                                            {{-- Jika sudah ada pembayaran, tampilkan tahun dari statusBulanan --}}
+                                            {{ $statusBulanan[$bulanAngka]['tahun'] ?? $tahunSekarang }}
                                         @else
-                                            N/A
-                                        @endif
-                                    </td>
-                                    <td>Rp {{ number_format($pembayaranIuran->jumlah, 0, ',', '.') }}</td>
-                                    <td>
-                                        @if ($pembayaranIuran->bukti_bayar)
-                                            <img src="{{ asset('storage/' . $pembayaranIuran->bukti_bayar) }}" alt="Bukti Bayar" class="img-thumbnail">
-                                        @else
-                                            Tidak ada bukti
+                                            {{-- Jika belum ada pembayaran, tampilkan tahun saat ini --}}
+                                            {{ $tahunSekarang }}
                                         @endif
                                     </td>
                                     <td>
-                                        @if ($pembayaranIuran->status_pembayaran)
-                                            <span class="badge bg-success">Lunas</span>
+                                        @if (isset($statusBulanan[$bulanAngka]))
+                                            @if ($statusBulanan[$bulanAngka]['status'] == 1)
+                                                <span class="badge bg-success">Sudah Diverifikasi</span>
+                                            @else
+                                                <span class="badge bg-warning text-dark">Belum Diverifikasi</span>
+                                            @endif
                                         @else
-                                            <span class="badge bg-warning text-dark">Belum Lunas</span>
+                                            <span class="badge bg-danger">Belum Bayar</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <a href="{{ route('pembayaran-iuran.edit', $pembayaranIuran->id) }}" class="btn btn-sm btn-warning" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form action="{{ route('pembayaran-iuran.destroy', $pembayaranIuran->id) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus pembayaran ini?')" title="Hapus">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </form>
+                                        @if (!isset($statusBulanan[$bulanAngka]))
+                                            {{-- Perbaiki styling di sini untuk checkbox --}}
+                                            <div class="form-check">
+                                                <input class="form-check-input bulan-checkbox" type="checkbox" name="bulan_bayar[]" value="{{ $bulanAngka }}" id="bulanBayar{{ $bulanAngka }}">
+                                                <label class="form-check-label" for="bulanBayar{{ $bulanAngka }}">
+                                                    Pilih Bulan
+                                                </label>
+                                            </div>
+                                        @else
+                                            @if ($statusBulanan[$bulanAngka]['status'] == 1)
+                                                <span>-</span>
+                                            @else
+                                                <a href="#" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#buktiBayarModal{{ $bulanAngka }}">Lihat Bukti</a>
+                                                <div class="modal fade" id="buktiBayarModal{{ $bulanAngka }}" tabindex="-1" aria-labelledby="buktiBayarModalLabel{{ $bulanAngka }}" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="buktiBayarModalLabel{{ $bulanAngka }}">Bukti Bayar {{ $bulanNama }}</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body text-center">
+                                                                @if ($statusBulanan[$bulanAngka]['bukti_bayar'])
+                                                                    <img src="{{ Storage::url($statusBulanan[$bulanAngka]['bukti_bayar']) }}" class="img-fluid" alt="Bukti Pembayaran">
+                                                                @else
+                                                                    <p>Tidak ada bukti bayar tersedia.</p>
+                                                                @endif
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
-            </div>
+
+                <div class="mb-3 mt-4">
+                    <label for="bukti_bayar" class="form-label">Unggah Bukti Bayar (Opsional)</label>
+                    <input type="file" class="form-control @error('bukti_bayar') is-invalid @enderror" id="bukti_bayar" name="bukti_bayar" accept="image/*">
+                    <small class="form-text text-muted">Format yang diizinkan: JPEG, PNG, JPG. Ukuran maksimal: 2MB.</small>
+                    @error('bukti_bayar')
+                        <div class="text-danger">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary me-2">Submit Pembayaran</button>
+                    <a href="{{ route('dashboard') }}" class="btn btn-secondary">Batal</a>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 @endsection
 
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+@push('scripts')
 <script>
-    $(document).ready(function () {
-        // Inisialisasi DataTables
-        var table = $('#multi-filter-select').DataTable({
-            orderCellsTop: true,
-            fixedHeader: true,
-            pageLength: 5,
-            // Mengatur kolom yang tidak bisa diurutkan dan dicari
-            columnDefs: [
-                { "orderable": false, "targets": [0, 5, 7] }, // Kolom No, Bukti Bayar, Aksi tidak dapat diurutkan (index disesuaikan)
-                { "searchable": false, "targets": [0, 5, 7] } // Kolom No, Bukti Bayar, Aksi tidak dapat dicari global (index disesuaikan)
-            ]
-        });
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkboxes = document.querySelectorAll('.bulan-checkbox');
+        const totalBiayaEl = document.getElementById('total-biaya');
+        const biayaPerBulan = {{ $besaranBiaya->total_biaya ?? 0 }};
 
-        // Apply the search for each column (input text)
-        $('input.column-search').on('keyup change', function () {
-            table
-                .column($(this).closest('th').index())
-                .search(this.value)
-                .draw();
-        });
+        function updateTotal() {
+            let total = 0;
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    total += biayaPerBulan;
+                }
+            });
 
-        // Apply the search for each column (select dropdown)
-        $('select.column-search').on('change', function () {
-            var val = $.fn.dataTable.util.escapeRegex($(this).val());
-            table
-                .column($(this).closest('th').index())
-                .search(val ? '^' + val + '$' : '', true, false)
-                .draw();
+            // Format ke Rupiah (ID)
+            totalBiayaEl.innerText = 'Rp. ' + total.toLocaleString('id-ID');
+        }
+
+        // Jalankan saat pertama kali
+        updateTotal();
+
+        // Event ketika dicentang/diubah
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', updateTotal);
         });
     });
 </script>
+@endpush

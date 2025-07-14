@@ -15,7 +15,8 @@
             <h4 class="card-title">Edit Data Penilaian SKK</h4>
         </div>
         <div class="card-body">
-            <form id="skkAssessmentForm" action="{{ route('nilai_skk.update_group', ['siswa_id' => $siswa->id, 'tingkatan' => $tingkatan, 'jenis_skk' => $jenis_skk]) }}" method="POST">
+            {{-- IMPORTANT: Add enctype="multipart/form-data" for file uploads --}}
+            <form id="skkAssessmentForm" action="{{ route('nilai_skk.update_group', ['siswa_id' => $siswa->id, 'tingkatan' => $tingkatan, 'jenis_skk' => $jenis_skk]) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -43,16 +44,29 @@
 
                     <div class="mb-3">
                         <label for="assessment_date" class="form-label">Tanggal Penilaian</label>
+                        {{-- Use $penilaianSkk->tanggal for the date --}}
                         <input type="date" class="form-control" id="assessment_date" name="assessment_date" value="{{ old('assessment_date', $penilaianSkk->tanggal ?? date('Y-m-d')) }}" required>
                         @error('assessment_date')
                             <div class="text-danger">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    {{-- Tombol "Muat Daftar Penilaian" disembunyikan karena daftar akan dimuat otomatis --}}
-                    {{-- <div class="mb-3">
-                        <button type="button" id="getSkkButton" class="btn btn-primary">Muat Daftar Penilaian</button>
-                    </div> --}}
+                    {{-- REVERTED: Input for Bukti PDF (global) --}}
+                    <div class="mb-3">
+                        <label for="bukti_pdf" class="form-label">Bukti Penilaian SKK</label>
+                        @if($penilaianSkk->bukti_pdf)
+                            <p>PDF Saat Ini: <a href="{{ asset($penilaianSkk->bukti_pdf) }}" target="_blank">Lihat PDF</a></p>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="remove_bukti_pdf" name="remove_bukti_pdf" value="1">
+                                <label class="form-check-label" for="remove_bukti_pdf">Hapus PDF saat ini</label>
+                            </div>
+                        @endif
+                        <input type="file" class="form-control" id="bukti_pdf" name="bukti_pdf" accept=".pdf">
+                        @error('bukti_pdf')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text text-muted">Format yang diizinkan: PDF. Ukuran maksimal: 2MB.</small>
+                    </div>
 
                     <div class="mb-3">
                         <label for="status_skk_display" class="form-label">Status SKK</label>
@@ -60,7 +74,7 @@
                     </div>
                 </div>
 
-                <div id="skk-detail-section"> {{-- Remove style="display:none;" here as it should be visible initially --}}
+                <div id="skk-detail-section">
                     <hr>
                     <h5 class="card-title mt-4">Detail Penilaian SKK</h5>
                     <div class="table-responsive">
@@ -70,6 +84,7 @@
                                     <th>No</th>
                                     <th>Keterangan</th>
                                     <th>Nilai</th>
+                                    {{-- REMOVED: Column for Bukti PDF per item --}}
                                 </tr>
                             </thead>
                             <tbody>
@@ -93,16 +108,17 @@
 <script>
     $(function () {
         const form = $('#skkAssessmentForm');
-        // Siswa ID, Tingkatan, dan Jenis SKK sekarang diambil dari hidden input
         const siswaId = $('#siswa_id');
         const tingkatan = $('#tingkatan');
         const jenisSkk = $('#jenis_skk');
-        // const btnLoad = $('#getSkkButton'); // Tombol ini sudah disembunyikan
         const tableBody = $('#skkDetailTable tbody');
         const statusField = $('#status_skk_display');
 
         let totalItems = 0;
         let checkedSkkIds = new Set();
+
+        // Data existing assessments dari controller (keyed by manajemen_skk_id)
+        const existingAssessmentsKeyed = {!! json_encode($existingAssessmentsKeyed->toArray()) !!};
 
         function updateOverallStatus() {
             const currentCheckedCount = checkedSkkIds.size;
@@ -130,15 +146,12 @@
         }
 
         // Function to load SKK items based on selected tingkatan and jenis_skk
-        function loadSkkItems(selectedTingkatan, selectedJenisSkk, initialLoad = false) {
-            // Disabled property removed for siswaId, tingkatan, jenisSkk since they are now hidden inputs
-            // btnLoad.prop('disabled', true).text('Memuat...'); // Tombol disembunyikan
-
+        function loadSkkItems(selectedTingkatan, selectedJenisSkk) {
             if ($.fn.DataTable.isDataTable('#skkDetailTable')) {
                 $('#skkDetailTable').DataTable().destroy();
             }
             tableBody.empty();
-            checkedSkkIds.clear();
+            checkedSkkIds.clear(); // Clear the set for a fresh load
 
             $.ajax({
                 url: "{{ route('nilai_skk.getSkkItems') }}",
@@ -152,16 +165,16 @@
 
                     if (totalItems === 0) {
                         tableBody.append(`<tr><td colspan="3" class="text-center">Tidak ada data SKK</td></tr>`);
-                        form.find('button[type="submit"]').prop('disabled', true); // Disable submit if no items
+                        form.find('button[type="submit"]').prop('disabled', true);
                     } else {
                         let num = 1;
                         data.forEach(item => {
-                            // Check if this item was already assessed and its status was true
-                            // The `existingAssessments` data is passed from the controller to the view
-                            const isCheckedInitially = initialLoad && (typeof {{ Js::from($existingAssessments->pluck('status', 'manajemen_skk_id')) }}[item.id] !== 'undefined' && {{ Js::from($existingAssessments->pluck('status', 'manajemen_skk_id')) }}[item.id] === 1);
+                            const skkId = String(item.id);
+                            const existingAssessment = existingAssessmentsKeyed[skkId];
+                            const isCheckedInitially = existingAssessment && existingAssessment.status === 1;
 
                             if (isCheckedInitially) {
-                                checkedSkkIds.add(String(item.id)); // Add to set if checked
+                                checkedSkkIds.add(skkId);
                             }
 
                             tableBody.append(`
@@ -169,12 +182,12 @@
                                     <td>${num++}</td>
                                     <td>${item.keterangan_skk}</td>
                                     <td>
-                                        <input type="checkbox" data-skk-id="${item.id}" class="skk-checkbox" ${isCheckedInitially ? 'checked' : ''}>
+                                        <input type="checkbox" data-skk-id="${skkId}" class="skk-checkbox" ${isCheckedInitially ? 'checked' : ''}>
                                     </td>
                                 </tr>
                             `);
                         });
-                        form.find('button[type="submit"]').prop('disabled', false); // Enable submit if there are items
+                        form.find('button[type="submit"]').prop('disabled', false);
                     }
 
                     const dataTableInstance = $('#skkDetailTable').DataTable({
@@ -184,9 +197,6 @@
                             updateCheckboxesOnDraw();
                         }
                     });
-
-                    // section detail sudah tidak hidden lagi, jadi ini tidak perlu:
-                    // $('#skk-detail-section').slideDown();
 
                     $('#skkDetailTable tbody').off('change', '.skk-checkbox').on('change', '.skk-checkbox', function() {
                         const skkId = $(this).attr('data-skk-id');
@@ -199,21 +209,10 @@
                     });
 
                     updateOverallStatus();
-
-                    // Remove re-enabling disabled properties as they are now hidden inputs
-                    // siswaId.prop('disabled', false);
-                    // tingkatan.prop('disabled', false);
-                    // jenisSkk.prop('disabled', false);
-                    // btnLoad.prop('disabled', false).text('Muat Daftar Penilaian'); // Tombol disembunyikan
                 },
                 error: function(xhr) {
                     alert("Gagal memuat data: " + xhr.responseText);
-                    // Remove re-enabling disabled properties
-                    // siswaId.prop('disabled', false);
-                    // tingkatan.prop('disabled', false);
-                    // jenisSkk.prop('disabled', false);
-                    // btnLoad.prop('disabled', false).text('Muat Daftar Penilaian'); // Tombol disembunyikan
-                    form.find('button[type="submit"]').prop('disabled', true); // Disable submit on error
+                    form.find('button[type="submit"]').prop('disabled', true);
                 }
             });
         }
@@ -224,17 +223,8 @@
         const initialJenisSkk = jenisSkk.val();
 
         if (initialSiswaId && initialTingkatan && initialJenisSkk) {
-            loadSkkItems(initialTingkatan, initialJenisSkk, true);
+            loadSkkItems(initialTingkatan, initialJenisSkk);
         }
-
-        // Remove the click event for btnLoad as it's no longer visible
-        // btnLoad.on('click', function () {
-        //     if (!siswaId.val() || !tingkatan.val() || !jenisSkk.val()) {
-        //         alert('Pilih siswa, tingkatan, dan jenis SKK terlebih dahulu.');
-        //         return;
-        //     }
-        //     loadSkkItems(tingkatan.val(), jenisSkk.val());
-        // });
 
         form.on('submit', function (event) {
             // Hapus semua hidden input 'checked_skk_items[]' yang mungkin sudah ada sebelumnya

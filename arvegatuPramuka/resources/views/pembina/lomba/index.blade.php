@@ -11,15 +11,15 @@
         font-size: 14px;
         transition: all 0.3s ease;
       }
-    
+  
       .column-search:focus {
         border-color: #66afe9;
         outline: none;
         box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
       }
     </style>
-</head>
-
+  </head>
+  
 @extends('layouts.main')
 
 @section('sidebar')
@@ -30,19 +30,20 @@
 <div class="col-md-12">
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h4 class="card-title">Manajemen Data Lomba</h4>
+            <h4 class="card-title">Manajemen Clustering Regu Inti</h4>
             <a href="{{ route('lomba.create') }}" class="btn btn-primary btn-sm" title="Tambah Lomba">
                 <i class="fa fa-plus-square" aria-hidden="true"></i>
             </a>
         </div>
         <div class="card-body">
-            {{-- Pesan sukses atau error --}}
+
             @if (session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     {{ session('success') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
+
             @if (session('error'))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     {{ session('error') }}
@@ -51,13 +52,13 @@
             @endif
 
             <div class="table-responsive">
-                <table id="lomba-table" class="display table table-striped table-hover">
+                <table id="multi-filter-select" class="display table table-striped table-hover">
                     <thead>
                         <tr>
                             <th>No</th>
                             <th>Jenis Lomba</th>
                             <th>Jumlah Siswa</th>
-                            <th>Variabel Akademik </th> 
+                            <th>Variabel Akademik</th>
                             <th>Variabel Non-Akademik</th>
                             <th>Status</th>
                             <th>Aksi</th>
@@ -67,13 +68,13 @@
                         @foreach ($lombas as $index => $lomba)
                             <tr>
                                 <td>{{ $index + 1 }}</td>
-                                <td>{{ $lomba->jenis_lomba }}</td>
+                                <td>{{ $lomba->variabel->jenis_lomba ?? '-' }}</td>
                                 <td>{{ $lomba->jumlah_siswa }}</td>
                                 <td>
-                                    @if ($lomba->related_nilai_akademiks->isNotEmpty())
-                                        <ul>
-                                            @foreach ($lomba->related_nilai_akademiks as $nilaiAkademik)
-                                                <li>{{ $nilaiAkademik->mata_pelajaran }}</li>
+                                    @if (!empty($lomba->variabel?->variabel_akademiks))
+                                        <ul class="mb-0">
+                                            @foreach ($lomba->variabel->variabel_akademiks as $ak)
+                                                <li>{{ $ak }}</li>
                                             @endforeach
                                         </ul>
                                     @else
@@ -81,10 +82,10 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if ($lomba->related_nilai_non_akademiks->isNotEmpty())
-                                        <ul>
-                                            @foreach ($lomba->related_nilai_non_akademiks as $nilaiNonAkademik)
-                                                <li>{{ $nilaiNonAkademik->kategori }}</li>
+                                    @if (!empty($lomba->variabel?->variabel_non_akademiks))
+                                        <ul class="mb-0">
+                                            @foreach ($lomba->variabel->variabel_non_akademiks as $nak)
+                                                <li>{{ $nak }}</li>
                                             @endforeach
                                         </ul>
                                     @else
@@ -122,13 +123,11 @@
 
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script>
-    $(document).ready(function() {
-        $('#lomba-table').DataTable({
-            "pageLength": 10, // Mengatur jumlah baris per halaman
-            "columnDefs": [
-                { "orderable": false, "targets": [0, 4] }, // Kolom No dan Aksi tidak dapat diurutkan (perlu disesuaikan jika jumlah kolom berubah)
-                { "searchable": false, "targets": [0, 4] } // Kolom No dan Aksi tidak dapat dicari global (perlu disesuaikan)
-            ]
+    $(document).ready(function () {
+        $('#multi-filter-select').DataTable({
+            orderCellsTop: true,
+            fixedHeader: true,
+            pageLength: 5,
         });
     });
 </script>

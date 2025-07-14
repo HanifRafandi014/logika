@@ -36,6 +36,7 @@ class GuruImport implements ToModel, WithHeadingRow, WithStartRow
 
         return new Guru([
             'nama' => $row['nama'],
+            'kelas' => $row['kelas'],
             'mata_pelajaran' => $row['mata_pelajaran'],
             'nip' => $row['nip'],
             'pembina_pramuka' => $row['pembina_pramuka'],

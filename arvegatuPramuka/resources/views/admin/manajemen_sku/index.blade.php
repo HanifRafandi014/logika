@@ -43,7 +43,8 @@
             <thead>
               <tr>
                 <th>No</th>
-                <th>Keterangan SKU</th>
+                <th>Kompetensi Dasar SKU</th>
+                <th>Item Pencapaian SKU</th>
                 <th>Tingkatan</th>
                 <th>Aksi</th>
               </tr>
@@ -53,6 +54,7 @@
                 <tr>
                   <td>{{ $index + 1 }}</td> <!-- Nomor Urut -->
                   <td>{{ $sku->keterangan_sku }}</td>
+                  <td>{{ $sku->item_pencapaian_sku }}</td>
                   <td>{{ $sku->tingkatan }}</td>
                   <td>
                     <a href="{{ route('manajemen_sku.edit', $sku->id) }}" class="btn btn-sm btn-warning" title="Edit">

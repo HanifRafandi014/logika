@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('gurus', function (Blueprint $table) {
             $table->id();
-            $table->string('nama')->nullable();
+            $table->string('nama');
+            $table->string('kelas');
             $table->string('mata_pelajaran')->nullable();
             $table->string('nip')->nullable();
             $table->string('pembina_pramuka')->nullable();

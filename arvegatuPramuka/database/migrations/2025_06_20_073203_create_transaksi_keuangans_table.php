@@ -13,13 +13,12 @@ return new class extends Migration
     {
         Schema::create('transaksi_keuangans', function (Blueprint $table) {
             $table->id();
-            $table->enum('jenis_transaksi', ['pengeluaran', 'pemasukan']);
+            $table->enum('jenis_transaksi', ['Pengeluaran', 'Pemasukan']);
             $table->string(column: 'kategori')->nullable();
             $table->integer('jumlah');
             $table->string(column: 'bukti_transaksi')->nullable();
             $table->date('tanggal_transaksi');
-            $table->boolean('status_pembayaran')->default(false);
-           $table->foreignId('pengurus_besar_id')->constrained('orang_tuas')->onDelete('cascade');
+            $table->foreignId('pengurus_besar_id')->constrained('orang_tuas')->onDelete('cascade');
             $table->timestamps();
         });
     }

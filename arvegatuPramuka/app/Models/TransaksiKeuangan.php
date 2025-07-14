@@ -14,4 +14,9 @@ class TransaksiKeuangan extends Model
     {
         return $this->belongsTo(OrangTua::class, 'pengurus_besar_id');
     }
+
+    public function setoran_paguyuban()
+    {
+        return $this->belongsTo(SetoranPaguyuban::class, 'setoran_paguyuban_id');
+    }
 }

@@ -59,6 +59,10 @@
                     <input type="text" class="form-control" id="nama" name="nama" value="{{ $guru->nama ?? '' }}">
                 </div>
                 <div class="form-group">
+                    <label for="kelas">Kelas</label>
+                    <input type="text" class="form-control" id="kelas" name="kelas" value="{{ $guru->kelas ?? '' }}">
+                </div>
+                <div class="form-group">
                     <label for="mata_pelajaran">Mata Pelajaran</label>
                     <input type="text" class="form-control" id="mata_pelajaran" name="mata_pelajaran" value="{{ $guru->mata_pelajaran ?? '' }}">
                 </div>

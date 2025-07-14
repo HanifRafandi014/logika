@@ -28,6 +28,7 @@ class PembinaController extends Controller
     public function store(Request $request){
         $validatedData = $request->validate([
             'nama' => 'required',
+            'kelas' => 'required',
             'nip' => 'required',
             'kategori' => 'required',
             'status' => 'required',
@@ -45,6 +46,7 @@ class PembinaController extends Controller
         // Create pembina
         $pembina = Pembina::create([
             'nama' => $validatedData['nama'],
+            'kelas' => $validatedData['kelas'],
             'nip' => $validatedData['nip'],
             'kategori' => $validatedData['kategori'],
             'status' => $validatedData['status'],
@@ -67,6 +69,7 @@ class PembinaController extends Controller
 
         $validatedData = $request->validate([
             'nama' => 'required',
+            'kelas' => 'required',
             'nip' => 'required',
             'kategori' => 'required',
             'status' => 'required',
@@ -76,6 +79,7 @@ class PembinaController extends Controller
 
         $pembina->update([
             'nama' => $validatedData['nama'],
+            'kelas' => $validatedData['kelas'],
             'nip' => $validatedData['nip'],
             'kategori' => $validatedData['kategori'],
             'status' => $validatedData['status'],
@@ -117,8 +121,12 @@ class PembinaController extends Controller
         return view('admin.pembina.import'); // Pastikan file ini ada
     }
 
-    public function pembinaExport()
+    public function pembinaExport(Request $request)
     {
-        return Excel::download(new PembinaExport, 'pembina.xlsx');
+        $kategoriFilter = $request->query('kategori');
+        $statusFilter = $request->query('status');
+
+        $export = new PembinaExport();
+        return $export->export($kategoriFilter, $statusFilter);
     }
 }

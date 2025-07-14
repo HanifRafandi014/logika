@@ -7,6 +7,7 @@
 @section('content')
 <head>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 
 <div class="col-md-12">
@@ -15,20 +16,25 @@
             <h4 class="card-title">Tambah Data Penilaian SKU</h4>
         </div>
         <div class="card-body">
-            <form id="skuAssessmentForm" action="{{ route('nilai_sku.store') }}" method="POST">
+            <form id="skuAssessmentForm" action="{{ route('nilai_sku.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 <div id="main-info-section">
                     <div class="mb-3">
                         <label for="siswa_id" class="form-label">Nama Siswa</label>
-                        <select class="form-control" id="siswa_id" name="siswa_id" required>
-                            <option value="">Pilih Siswa</option>
-                            @foreach($siswas as $siswa)
-                                <option value="{{ $siswa->id }}" {{ old('siswa_id') == $siswa->id ? 'selected' : '' }}>
-                                    {{ $siswa->nama }}
-                                </option>
-                            @endforeach
-                        </select>
+                        @if ($selectedSiswaId)
+                            <input type="text" class="form-control" value="{{ $selectedSiswaNama }}" disabled>
+                            <input type="hidden" id="siswa_id_hidden" name="siswa_id" value="{{ $selectedSiswaId }}">
+                        @else
+                            <select class="form-control" id="siswa_id_dropdown" name="siswa_id" required>
+                                <option value="">Pilih Siswa</option>
+                                @foreach($siswas as $siswa)
+                                    <option value="{{ $siswa->id }}" {{ old('siswa_id') == $siswa->id ? 'selected' : '' }}>
+                                        {{ $siswa->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        @endif
                         @error('siswa_id')
                             <div class="text-danger">{{ $message }}</div>
                         @enderror
@@ -38,8 +44,11 @@
                         <label for="tingkatan" class="form-label">Tingkatan</label>
                         <select class="form-control" id="tingkatan" name="tingkatan" required>
                             <option value="">Pilih Tingkatan</option>
-                            @foreach($tingkatans as $tingkatanOption)
-                                <option value="{{ $tingkatanOption }}" {{ old('tingkatan') == $tingkatanOption ? 'selected' : '' }}>
+                            @foreach($allTingkatans as $tingkatanOption)
+                                <option 
+                                    value="{{ $tingkatanOption }}" 
+                                    {{ old('tingkatan') == $tingkatanOption ? 'selected' : '' }}
+                                    {{ in_array($tingkatanOption, $disabledTingkatans ?? []) ? 'disabled' : '' }}>
                                     {{ ucfirst($tingkatanOption) }}
                                 </option>
                             @endforeach
@@ -58,13 +67,21 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="bukti_pdf" class="form-label">Bukti Penilaian SKU</label>
+                        <input type="file" class="form-control" id="bukti_pdf" name="bukti_pdf" accept=".pdf">
+                        @error('bukti_pdf')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text text-muted">Format yang diizinkan: PDF. Ukuran maksimal: 2MB.</small>
+                    </div>
+
+                    <div class="mb-3">
                         <button type="button" id="getSkuButton" class="btn btn-primary">Muat Daftar Penilaian</button>
                     </div>
 
                     <div class="mb-3">
                         <label for="status_sku_display" class="form-label">Status SKU</label>
                         <input type="text" class="form-control" id="status_sku_display" value="Belum Dimuat" readonly>
-                        <input type="hidden" id="overall_status_hidden" value="0">
                     </div>
                 </div>
 
@@ -76,7 +93,7 @@
                             <thead>
                                 <tr>
                                     <th>No</th>
-                                    <th>Keterangan</th>
+                                    <th>Deskripsi SKU</th>
                                     <th>Nilai</th>
                                 </tr>
                             </thead>
@@ -101,63 +118,58 @@
 <script>
     $(function () {
         const form = $('#skuAssessmentForm');
-        const siswaId = $('#siswa_id');
+        const selectedSiswaId = @json($selectedSiswaId ?? null);
+        const siswaIdSource = selectedSiswaId ? $('#siswa_id_hidden') : $('#siswa_id_dropdown');
+
         const tingkatan = $('#tingkatan');
         const btnLoad = $('#getSkuButton');
         const tableBody = $('#skuDetailTable tbody');
         const statusField = $('#status_sku_display');
-        const statusHidden = $('#overall_status_hidden');
 
         let totalItems = 0;
-        let checkedSkuIds = new Set(); // Ini adalah Set yang melacak semua ID SKU yang dicentang
+        let checkedSkuIds = new Set();
 
         function updateOverallStatus() {
-            const currentCheckedCount = checkedSkuIds.size; // Ambil jumlah dari Set
+            const currentCheckedCount = checkedSkuIds.size;
             if (totalItems === 0) {
                 statusField.val("Tidak ada SKU");
-                statusHidden.val("0");
                 form.find('button[type="submit"]').prop('disabled', true);
             } else if (currentCheckedCount === totalItems) {
                 statusField.val("Memenuhi");
-                statusHidden.val("1");
                 form.find('button[type="submit"]').prop('disabled', false);
             } else {
                 statusField.val("Tidak Memenuhi");
-                statusHidden.val("0");
                 form.find('button[type="submit"]').prop('disabled', false);
             }
         }
 
-        // Fungsi ini akan dipanggil setiap kali DataTable digambar ulang (misal: ganti halaman)
         function updateCheckboxesOnDraw() {
-            // Iterasi melalui semua checkbox yang saat ini ada di DOM (halaman aktif)
             $('#skuDetailTable tbody .sku-checkbox').each(function() {
-                const skuId = $(this).attr('data-sku-id'); // Mengambil ID dari data-attribute
-                if (checkedSkuIds.has(skuId)) { // Periksa apakah ID ini ada di Set global
-                    $(this).prop('checked', true); // Jika ada, centang checkboxnya
+                const skuId = $(this).attr('data-sku-id');
+                if (checkedSkuIds.has(skuId)) {
+                    $(this).prop('checked', true);
                 } else {
-                    $(this).prop('checked', false); // Jika tidak, jangan centang
+                    $(this).prop('checked', false);
                 }
             });
         }
 
         btnLoad.on('click', function () {
-            if (!siswaId.val() || !tingkatan.val()) {
+            let currentSiswaId = selectedSiswaId || siswaIdSource.val();
+
+            if (!currentSiswaId || !tingkatan.val()) {
                 alert('Pilih siswa dan tingkatan terlebih dahulu.');
                 return;
             }
 
-            siswaId.prop('disabled', true);
+            if (siswaIdSource.attr('id') === 'siswa_id_dropdown') siswaIdSource.prop('disabled', true);
             tingkatan.prop('disabled', true);
             btnLoad.prop('disabled', true).text('Memuat...');
 
-            // Hancurkan instance DataTable yang mungkin sudah ada sebelum memuat data baru
             if ($.fn.DataTable.isDataTable('#skuDetailTable')) {
                 $('#skuDetailTable').DataTable().destroy();
             }
-            tableBody.empty(); // Kosongkan isi tabel
-
-            // Clear Set checkedSkuIds saat memuat daftar baru
+            tableBody.empty();
             checkedSkuIds.clear();
 
             $.ajax({
@@ -165,7 +177,7 @@
                 method: 'GET',
                 data: { tingkatan: tingkatan.val() },
                 success: function(data) {
-                    totalItems = data.length; // Set totalItems dari data yang diambil
+                    totalItems = data.length;
 
                     if (totalItems === 0) {
                         tableBody.append(`<tr><td colspan="3" class="text-center">Tidak ada data SKU</td></tr>`);
@@ -177,7 +189,6 @@
                                     <td>${num++}</td>
                                     <td>${item.keterangan_sku}</td>
                                     <td>
-                                        {{-- Gunakan data-sku-id untuk menyimpan ID SKU, bukan langsung value --}}
                                         <input type="checkbox" data-sku-id="${item.id}" class="sku-checkbox">
                                     </td>
                                 </tr>
@@ -185,11 +196,9 @@
                         });
                     }
 
-                    // Inisialisasi ulang DataTable
                     const dataTableInstance = $('#skuDetailTable').DataTable({
-                        pageLength: 5, // Atur pageLength sesuai keinginan
+                        pageLength: 5,
                         searching: true,
-                        // Tambahkan drawCallback untuk memperbarui checkbox setiap kali tabel digambar
                         "drawCallback": function( settings ) {
                             updateCheckboxesOnDraw();
                         }
@@ -197,37 +206,34 @@
 
                     $('#sku-detail-section').slideDown();
 
-                    // Pasang event listener untuk checkbox. Gunakan event delegation untuk DataTable.
-                    // .off('change') digunakan untuk mencegah event listener ganda jika btnLoad diklik lebih dari sekali.
                     $('#skuDetailTable tbody').off('change', '.sku-checkbox').on('change', '.sku-checkbox', function() {
-                        const skuId = $(this).attr('data-sku-id'); // Ambil ID dari data-attribute
+                        const skuId = $(this).attr('data-sku-id');
                         if ($(this).is(':checked')) {
-                            checkedSkuIds.add(skuId); // Tambahkan ID ke Set
+                            checkedSkuIds.add(skuId);
                         } else {
-                            checkedSkuIds.delete(skuId); // Hapus ID dari Set
+                            checkedSkuIds.delete(skuId);
                         }
-                        updateOverallStatus(); // Perbarui status keseluruhan
+                        updateOverallStatus();
                     });
 
-                    updateOverallStatus(); // Perbarui status awal setelah data dimuat
+                    updateOverallStatus();
 
+                    if (siswaIdSource.attr('id') === 'siswa_id_dropdown') siswaIdSource.prop('disabled', false);
+                    tingkatan.prop('disabled', false);
                     btnLoad.prop('disabled', false).text('Muat Daftar Penilaian');
                 },
                 error: function(xhr) {
                     alert("Gagal memuat data: " + xhr.responseText);
-                    siswaId.prop('disabled', false);
+                    if (siswaIdSource.attr('id') === 'siswa_id_dropdown') siswaIdSource.prop('disabled', false);
                     tingkatan.prop('disabled', false);
                     btnLoad.prop('disabled', false).text('Muat Daftar Penilaian');
                 }
             });
         });
 
-        // Event listener saat form disubmit
         form.on('submit', function (event) {
-            // Hapus semua hidden input 'checked_sku_items[]' yang mungkin sudah ada sebelumnya
             $('input[name="checked_sku_items[]"]').remove();
 
-            // Buat hidden input baru untuk setiap ID yang ada di Set checkedSkuIds
             checkedSkuIds.forEach(skuId => {
                 $('<input>').attr({
                     type: 'hidden',
@@ -236,8 +242,7 @@
                 }).appendTo(form);
             });
 
-            // Pastikan field siswa_id dan tingkatan tidak disabled agar nilainya terkirim
-            siswaId.prop('disabled', false);
+            if (siswaIdSource.attr('id') === 'siswa_id_dropdown') siswaIdSource.prop('disabled', false);
             tingkatan.prop('disabled', false);
         });
     });

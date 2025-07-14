@@ -13,11 +13,14 @@ return new class extends Migration
     {
         Schema::create('setoran_paguyubans', function (Blueprint $table) {
             $table->id();
-            $table->string('kelas');
-            $table->date('bulan_setor')->nullable();
+            $table->string('kelas')->nullable();
+            $table->json('bulan_setor')->nullable();
             $table->integer('jumlah');
+            $table->integer('total');
             $table->string(column: 'bukti_setor')->nullable();
-            $table->boolean('status_verifikasi')->default(false);
+            $table->integer('kekurangan')->nullable();
+            $table->boolean('status_verifikasi');
+            $table->foreignId('besaran_biaya_id')->constrained('besaran_biayas')->onDelete('cascade');
             $table->foreignId('pengurus_kelas_id')->constrained('orang_tuas')->onDelete('cascade');
             $table->foreignId('pengurus_besar_id')->nullable()->constrained('orang_tuas')->onDelete('set null');
             $table->timestamps();

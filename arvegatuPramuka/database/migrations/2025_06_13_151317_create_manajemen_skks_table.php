@@ -14,8 +14,12 @@ return new class extends Migration
         Schema::create('manajemen_skks', function (Blueprint $table) {
             $table->id();
             $table->string('jenis_skk');
+            $table->string('logo');
+            $table->text('kompetensi_dasar');
             $table->text('keterangan_skk');
-            $table->enum('tingkatan', ['purwa', 'madya', 'utama']);
+            $table->enum('tingkatan', ['Purwa', 'Madya', 'Utama']);
+            $table->enum('kelompok', ['Agama', 'Patriotisme', 'Kesehatan', 'Keterampilan', 'Sosial']);
+            $table->enum('kategori', ['Wajib', 'Keahlian']);
             $table->timestamps();
         });
     }

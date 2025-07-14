@@ -23,6 +23,13 @@
             @enderror
           </div>
           <div class="form-group">
+            <label for="kelas">Kelas</label>
+            <input type="text" class="form-control @error('kelas') is-invalid @enderror" id="kelas" name="kelas" value="{{ old('kelas', $guru->kelas) }}" required>
+            @error('kelas')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+          </div>
+          <div class="form-group">
             <label for="mata_pelajaran">Mata Pelajaran</label>
             <input type="text" class="form-control @error('mata_pelajaran') is-invalid @enderror" id="mata_pelajaran" name="mata_pelajaran" value="{{ old('mata_pelajaran', $guru->mata_pelajaran) }}" required>
             @error('mata_pelajaran')

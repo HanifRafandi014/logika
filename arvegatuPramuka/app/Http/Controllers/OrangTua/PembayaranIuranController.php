@@ -6,179 +6,240 @@ use App\Http\Controllers\Controller;
 use App\Models\PembayaranSpp;
 use App\Models\Siswa;
 use App\Models\OrangTua;
+use App\Models\BesaranBiaya;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class PembayaranIuranController extends Controller
 {
-    public function index()
+    public function index(): View|RedirectResponse
     {
-        $loggedInUser = Auth::user();
+        $user = Auth::user();
 
-        if (!$loggedInUser || $loggedInUser->role !== 'orang_tua' || !$loggedInUser->orang_tua) {
-            abort(403, 'Unauthorized. You must be a logged-in parent to view this page.');
+        if (!$user || $user->role !== 'orang_tua' || !$user->orang_tua) {
+            abort(403, 'Unauthorized');
         }
 
-        $orangTuaId = $loggedInUser->orang_tua->id;
+        $orangTua = $user->orang_tua;
+        $siswa = $orangTua->siswa;
 
-        $pembayaranSpps = PembayaranSpp::with(['siswa', 'orang_tua'])
-                                ->where('orang_tua_id', $orangTuaId)
-                                ->latest()
-                                ->get();
-
-        return view('orang_tua.pembayaran_iuran.index', compact('pembayaranSpps'));
-    }
-
-    public function create()
-    {
-        $loggedInUser = Auth::user();
-
-        if (!$loggedInUser || $loggedInUser->role !== 'orang_tua' || !$loggedInUser->orang_tua) {
-            abort(403, 'Unauthorized. You must be a logged-in parent to create a payment.');
+        if (!$siswa) {
+            return redirect()->back()->with('error', 'Akun ini belum dikaitkan dengan siswa.');
         }
 
-        $orangTuaLogin = $loggedInUser->orang_tua;
-        $siswas = Siswa::all(); // Mengambil semua siswa untuk dropdown
+        $besaranBiaya = BesaranBiaya::first();
+        if (!$besaranBiaya) {
+            return redirect()->back()->with('error', 'Besaran biaya belum ditentukan.');
+        }
 
-        return view('orang_tua.pembayaran_iuran.create', compact('orangTuaLogin', 'siswas'));
+        $bulanDalamTahun = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        // Dapatkan tahun sekarang
+        $tahunSekarang = date('Y');
+
+        // Ambil semua pembayaran orang tua ini
+        $pembayaranSpps = PembayaranSpp::where('orang_tua_id', $orangTua->id)
+            ->with('siswa')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Tandai bulan mana saja yang sudah dibayar
+        $statusBulanan = [];
+        $totalSudahDibayar = 0; // ← Hitung total yang sudah dibayar
+
+        foreach ($pembayaranSpps as $pembayaran) {
+            $bulanBayar = json_decode($pembayaran->bulan_bayar, true);
+            if (is_array($bulanBayar)) {
+                $jumlahBulan = count($bulanBayar);
+
+                // Tambahkan ke total yang sudah dibayar
+                $totalSudahDibayar += $jumlahBulan * $besaranBiaya->total_biaya;
+
+                foreach ($bulanBayar as $bulanAngka) {
+                    $statusBulanan[(int)$bulanAngka] = [
+                        'status' => $pembayaran->status_pembayaran,
+                        'bukti_bayar' => $pembayaran->bukti_bayar,
+                        'id' => $pembayaran->id,
+                        'tahun' => $tahunSekarang,
+                    ];
+                }
+            }
+        }
+
+        $besaranBiayaTotal = $besaranBiaya ? $besaranBiaya->total_biaya : 0;
+
+        return view('orang_tua.pembayaran_iuran.index', compact(
+            'orangTua',
+            'siswa',
+            'besaranBiaya',
+            'bulanDalamTahun',
+            'statusBulanan',
+            'pembayaranSpps',
+            'besaranBiayaTotal',
+            'tahunSekarang',
+            'totalSudahDibayar' // ← Kirim ke blade
+        ));
     }
 
-    public function store(Request $request)
+    public function create(): RedirectResponse
     {
+        return redirect()->route('pembayaran-iuran.index')
+            ->with('info', 'Silakan lakukan pembayaran dari halaman utama.');
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if (!$user || $user->role !== 'orang_tua' || !$user->orang_tua) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $orangTua = $user->orang_tua;
+        $siswa = $orangTua->siswa;
+
+        if (!$siswa) {
+            return redirect()->back()->with('error', 'Siswa tidak ditemukan untuk akun Anda.');
+        }
+
         $request->validate([
-            'bulan_bayar' => 'required|date',
-            'jumlah' => 'required|integer',
-            'bukti_bayar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'status_pembayaran' => 'boolean', // Mengubah dari nullable|boolean menjadi boolean saja
-            'siswa_id' => 'required|exists:siswas,id',
+            'bulan_bayar' => 'required|array',
+            'bulan_bayar.*' => 'required|integer|min:1|max:12',
+            'bukti_bayar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
+        // Simpan bukti bayar jika diunggah
         $buktiBayarPath = null;
         if ($request->hasFile('bukti_bayar')) {
             $buktiBayarPath = $request->file('bukti_bayar')->store('bukti_pembayaran', 'public');
         }
 
-        $loggedInUser = Auth::user();
-
-        if (!$loggedInUser || $loggedInUser->role !== 'orang_tua' || !$loggedInUser->orang_tua) {
-            abort(403, 'Unauthorized.');
+        $besaranBiaya = BesaranBiaya::first();
+        if (!$besaranBiaya) {
+            return redirect()->back()->with('error', 'Besaran biaya belum tersedia.');
         }
-
-        $orangTuaId = $loggedInUser->orang_tua->id;
 
         PembayaranSpp::create([
-            'bulan_bayar' => $request->bulan_bayar,
-            'jumlah' => $request->jumlah,
+            'siswa_id' => $siswa->id,
+            'orang_tua_id' => $orangTua->id,
+            'besaran_biaya_id' => $besaranBiaya->id,
+            'bulan_bayar' => json_encode($request->bulan_bayar),
             'bukti_bayar' => $buktiBayarPath,
-            'status_pembayaran' => $request->has('status_pembayaran') ? 1 : 0, // Jika ada di request (dicentang) = 1, jika tidak = 0
-            'siswa_id' => $request->siswa_id,
-            'orang_tua_id' => $orangTuaId,
+            'status_pembayaran' => 0, // Default belum diverifikasi
+            // Jika Anda ingin menyimpan tahun pembayaran di database, tambahkan kolom 'tahun'
+            // dan masukkan $tahunSekarang di sini. Contoh: 'tahun_bayar' => date('Y'),
         ]);
 
-        return redirect()->route('pembayaran-iuran.index')->with('success', 'Pembayaran iuran berhasil ditambahkan.');
+        return redirect()->route('pembayaran-iuran.index')->with('success', 'Pembayaran berhasil ditambahkan.');
     }
 
-    public function edit(PembayaranSpp $pembayaranIuran)
+    public function riwayatPembayaran(): View
     {
         $loggedInUser = Auth::user();
 
         if (!$loggedInUser || $loggedInUser->role !== 'orang_tua' || !$loggedInUser->orang_tua) {
-            abort(403, 'Unauthorized.');
-        }
-
-        if ($loggedInUser->orang_tua->id !== $pembayaranIuran->orang_tua_id) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $orangTuaLogin = $pembayaranIuran->orang_tua;
-        $siswas = Siswa::all(); // Mengambil semua siswa untuk dropdown di form edit
-
-        return view('orang_tua.pembayaran_iuran.edit', compact('pembayaranIuran', 'orangTuaLogin', 'siswas'));
-    }
-
-    public function update(Request $request, PembayaranSpp $pembayaranIuran)
-    {
-        $loggedInUser = Auth::user();
-
-        if (!$loggedInUser || $loggedInUser->role !== 'orang_tua' || !$loggedInUser->orang_tua) {
-            abort(403, 'Unauthorized.');
-        }
-
-        if ($loggedInUser->orang_tua->id !== $pembayaranIuran->orang_tua_id) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $request->validate([
-            'bulan_bayar' => 'required|date',
-            'jumlah' => 'required|integer',
-            'bukti_bayar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'status_pembayaran' => 'boolean', // Mengubah dari nullable|boolean menjadi boolean saja
-            'siswa_id' => 'required|exists:siswas,id',
-        ]);
-
-        $buktiBayarPath = $pembayaranIuran->bukti_bayar;
-        if ($request->hasFile('bukti_bayar')) {
-            if ($buktiBayarPath) {
-                Storage::disk('public')->delete($buktiBayarPath);
-            }
-            $buktiBayarPath = $request->file('bukti_bayar')->store('bukti_pembayaran', 'public');
-        } elseif ($request->boolean('remove_bukti_bayar')) { // Ini adalah cara untuk menghapus bukti bayar jika checkbox hapus dicentang
-            if ($buktiBayarPath) {
-                Storage::disk('public')->delete($buktiBayarPath);
-            }
-            $buktiBayarPath = null;
+            abort(403, 'Unauthorized. Anda harus login sebagai orang tua untuk melihat riwayat pembayaran.');
         }
 
         $orangTuaId = $loggedInUser->orang_tua->id;
 
-        $pembayaranIuran->update([
-            'bulan_bayar' => $request->bulan_bayar,
-            'jumlah' => $request->jumlah,
-            'bukti_bayar' => $buktiBayarPath,
-            'status_pembayaran' => $request->has('status_pembayaran') ? 1 : 0, // Jika ada di request (dicentang) = 1, jika tidak = 0
-            'siswa_id' => $request->siswa_id,
-            'orang_tua_id' => $orangTuaId,
-        ]);
-
-        return redirect()->route('pembayaran-iuran.index')->with('success', 'Pembayaran iuran berhasil diperbarui.');
-    }
-
-    public function destroy(PembayaranSpp $pembayaranIuran)
-    {
-        $loggedInUser = Auth::user();
-
-        if (!$loggedInUser || $loggedInUser->role !== 'orang_tua' || !$loggedInUser->orang_tua) {
-            abort(403, 'Unauthorized.');
-        }
-
-        if ($loggedInUser->orang_tua->id !== $pembayaranIuran->orang_tua_id) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        if ($pembayaranIuran->bukti_bayar) {
-            Storage::disk('public')->delete($pembayaranIuran->bukti_bayar);
-        }
-        $pembayaranIuran->delete();
-        return redirect()->route('pembayaran-iuran.index')->with('success', 'Pembayaran iuran berhasil dihapus.');
-    }
-
-    public function riwayatPembayaran()
-    {
-        $loggedInUser = Auth::user();
-
-        if (!$loggedInUser || $loggedInUser->role !== 'orang_tua' || !$loggedInUser->orang_tua) {
-            abort(403, 'Unauthorized. You must be a logged-in parent to view payment history.');
-        }
-
-        $orangTuaId = $loggedInUser->orang_tua->id;
-
-        // Fetch all payment records for the logged-in parent, eager load siswa relation
-        $riwayatPembayarans = PembayaranSpp::with('siswa')
-                                            ->where('orang_tua_id', $orangTuaId)
-                                            ->latest() // Order by latest payments first
-                                            ->get();
+        $riwayatPembayarans = PembayaranSpp::with('siswa', 'besaran_biaya')
+            ->where('orang_tua_id', $orangTuaId)
+            ->latest()
+            ->get();
 
         return view('orang_tua.pembayaran_iuran.riwayat_pembayaran', compact('riwayatPembayarans'));
+    }
+
+public function verifikasiIndex(Request $request): View|RedirectResponse
+    {
+        $loggedInUser = Auth::user();
+        if (
+            !$loggedInUser ||
+            $loggedInUser->role !== 'orang_tua' ||
+            !$loggedInUser->orang_tua ||
+            $loggedInUser->orang_tua->status !== 'Pengurus Paguyuban Kelas'
+        ) {
+            abort(403, 'Unauthorized. Anda tidak memiliki izin untuk mengakses halaman verifikasi pembayaran.');
+        }
+
+        $pengurusSiswa = $loggedInUser->orang_tua->siswa;
+        if (!$pengurusSiswa) {
+            return redirect()->back()->with('error', 'Akun pengurus ini belum terkait dengan siswa.');
+        }
+
+        $kelasPengurus = $pengurusSiswa->kelas;
+        if (empty($kelasPengurus)) {
+            return redirect()->back()->with('error', 'Siswa yang terkait dengan akun pengurus ini belum memiliki informasi kelas.');
+        }
+
+        $siswaFilter = $request->query('siswa');
+        $orangTuaFilter = $request->query('orang_tua');
+
+        $pembayaranUntukVerifikasiQuery = PembayaranSpp::with(['siswa', 'orang_tua'])
+            ->where('status_pembayaran', 0)
+            ->whereHas('siswa', function ($query) use ($kelasPengurus) {
+                $query->where('kelas', $kelasPengurus);
+            });
+
+        if ($siswaFilter && $orangTuaFilter) {
+            $pembayaranUntukVerifikasiQuery->whereHas('siswa', function ($query) use ($siswaFilter) {
+                $query->where('nama', $siswaFilter);
+            })->whereHas('orang_tua', function ($query) use ($orangTuaFilter) {
+                $query->where('nama', $orangTuaFilter);
+            });
+        }
+
+        $pembayaranUntukVerifikasi = $pembayaranUntukVerifikasiQuery->latest()->get();
+
+        // Tambahkan array mapping bulan ke data yang dikirimkan ke view
+        $bulanDalamTahun = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        return view('orang_tua.pengurus_kelas.verifikasi_pembayaran_kelas', [
+            'pembayaranUntukVerifikasi' => $pembayaranUntukVerifikasi,
+            'loggedInUser' => $loggedInUser,
+            'kelasPengurus' => $kelasPengurus,
+            'bulanDalamTahun' => $bulanDalamTahun // <-- Tambahkan ini
+        ]);
+    }
+
+    public function verify(Request $request, int $id): RedirectResponse
+    {
+        $loggedInUser = Auth::user();
+
+        if (!$loggedInUser || $loggedInUser->role !== 'orang_tua' || !$loggedInUser->orang_tua || $loggedInUser->orang_tua->status !== 'Pengurus Paguyuban Kelas') {
+            abort(403, 'Unauthorized. Anda tidak memiliki izin untuk memverifikasi pembayaran.');
+        }
+
+        $pembayaran = PembayaranSpp::find($id);
+
+        if (!$pembayaran) {
+            return redirect()->back()->with('error', 'Pembayaran tidak ditemukan.');
+        }
+
+        if ($pembayaran->status_pembayaran === 1) {
+            return redirect()->back()->with('info', 'Pembayaran ini sudah diverifikasi sebelumnya.');
+        }
+
+        $pengurusSiswa = $loggedInUser->orang_tua->siswa;
+        if (!$pengurusSiswa || $pengurusSiswa->kelas_id !== $pembayaran->siswa->kelas_id) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk memverifikasi pembayaran di luar kelas Anda.');
+        }
+
+        $pembayaran->status_pembayaran = 1;
+        $pembayaran->save();
+
+        return redirect()->back()->with('success', 'Pembayaran berhasil diverifikasi.');
     }
 }

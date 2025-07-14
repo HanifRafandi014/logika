@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('penilaian_skus', function (Blueprint $table) {
             $table->id();
-            $table->enum('tingkatan', ['ramu', 'rakit', 'terap']);
+            $table->enum('tingkatan', ['Ramu', 'Rakit', 'Terap']);
             $table->boolean('status');
             $table->date('tanggal');
+            $table->string('bukti_pdf')->nullable();
             $table->foreignId('pembina_id')->nullable()->constrained('pembinas')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('siswa_id')->nullable()->constrained('siswas')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('manajemen_sku_id')->nullable()->constrained('manajemen_skus')->onDelete('cascade')->onUpdate('cascade');

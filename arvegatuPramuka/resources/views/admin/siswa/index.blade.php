@@ -32,9 +32,9 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="card-title">Data Siswa</h4>
             <div class="d-flex ms-auto">
-              <a href="{{ route('admin.siswa.download-template') }}" class="btn btn-info btn-sm me-2" title="Download Template">
+              {{-- <a href="{{ route('admin.siswa.download-template') }}" class="btn btn-info btn-sm me-2" title="Download Template">
                   <i class="fas fa-download"></i>
-              </a>
+              </a> --}}
               <a href="{{ route('data-siswa.create') }}" class="btn btn-primary btn-sm me-2" title="Tambah Siswa">
                   <i class="fa fa-plus-square" aria-hidden="true"></i>
               </a>

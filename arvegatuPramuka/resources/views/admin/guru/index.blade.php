@@ -18,7 +18,7 @@
         box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
       }
     </style>
-  </head>
+</head>
   
   @extends('layouts.main')
   
@@ -32,9 +32,9 @@
       <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="card-title mb-0">Data Guru</h4>
         <div class="d-flex ms-auto">
-          <a href="{{ route('admin.guru.download-template') }}" class="btn btn-info btn-sm me-2" title="Download Template">
+          {{-- <a href="{{ route('admin.guru.download-template') }}" class="btn btn-info btn-sm me-2" title="Download Template">
                   <i class="fas fa-download"></i>
-              </a>
+              </a> --}}
             <a href="{{ route('data-guru.create') }}" class="btn btn-primary btn-sm me-2" title="Tambah Guru">
                 <i class="fa fa-plus-square" aria-hidden="true"></i>
             </a>
@@ -50,6 +50,7 @@
               <tr>
                 <th>No</th>
                 <th>Nama Guru</th>
+                <th>Kelas</th>
                 <th>Mata Pelajaran</th>
                 <th>NIP</th>
                 <th>Pembina Pramuka</th>
@@ -61,6 +62,7 @@
                 <tr>
                   <td>{{ $index + 1 }}</td> <!-- Nomor Urut -->
                   <td>{{ $guru->nama }}</td>
+                  <td>{{ $guru->kelas }}</td>
                   <td>{{ $guru->mata_pelajaran }}</td>
                   <td>{{ $guru->nip }}</td>
                   <td>{{ $guru->pembina_pramuka ? 'Ya' : 'Tidak' }}</td>

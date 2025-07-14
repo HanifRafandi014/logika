@@ -6,24 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('lombas', function (Blueprint $table) {
             $table->id();
-            $table->string('jenis_lomba');
             $table->integer('jumlah_siswa');
             $table->boolean('status');
-            $table->json('nilai_akademiks')->nullable();
-            $table->json('nilai_non_akademiks')->nullable();
+            $table->foreignId('variabel_clustering_id')->nullable()->constrained('variabel_clusterings')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::table('lombas', function (Blueprint $table) {
-            $table->dropColumn('nilai_akademiks');
-            $table->dropColumn('nilai_non_akademiks');
-        });
+        Schema::dropIfExists('lombas');
     }
 };

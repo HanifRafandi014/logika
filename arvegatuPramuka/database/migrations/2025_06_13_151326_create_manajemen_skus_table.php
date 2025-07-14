@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('manajemen_skus', function (Blueprint $table) {
             $table->id();
             $table->text('keterangan_sku');
-            $table->enum('tingkatan', ['ramu', 'rakit', 'terap']);
+            $table->text('item_pencapaian_sku');
+            $table->enum('tingkatan', ['Ramu', 'Rakit', 'Terap']);
             $table->timestamps();
         });
     }

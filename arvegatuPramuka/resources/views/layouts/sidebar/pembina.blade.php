@@ -1,40 +1,3 @@
-<!-- Sidebar -->
-{{-- <style>
-  .sidebar .nav-item {
-    background-color: #1E2A38; /* biru navy agak muda */
-    border-radius: 8px;
-    margin: 4px 8px;
-    transition: all 0.3s ease;
-    color: white;
-  }
-  
-  /* Hover effect */
-  .sidebar .nav-item:hover {
-    background-color: #ffffff;
-    color: #000000;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  }
-  
-  /* Link di dalam nav-item */
-  .sidebar .nav-item a {
-    color: #fff;
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    border-radius: 8px;
-  }
-  
-  /* Active nav-item */
-  .sidebar .nav-item.active {
-    background-color: #ffffff;
-    box-shadow: inset 0 0 0 2px #007bff; /* garis pinggir */
-  }
-  
-  .sidebar .nav-item.active a {
-    color: black;
-    font-weight: bold;
-  }
-  </style> --}}
 
 <div class="sidebar">
     <div class="sidebar-logo">
@@ -84,11 +47,27 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{route('nilai_non_akademik.index')}}">
-              <i class="fas fa-layer-group"></i>
-              <span>Nilai Non Akademik</span>
-            </a>
-          </li>
+            <a class="nav-link collapsed" data-bs-toggle="collapse" href="#nilaiMenu" aria-expanded="false" aria-controls="nilaiMenu">
+                <i class="fas fa-layer-group"></i>
+                <span>Nilai Siswa</span>
+                <span class="caret"></span> </a>
+            <div class="collapse" id="nilaiMenu">
+                <ul class="nav nav-collapse">
+                    <li>
+                        <a href="{{route('nilai_non_akademik.index')}}"> <span class="sub-item">Nilai Non Akademik</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{route('lihat_nilai.nilai_akademik')}}"> <span class="sub-item">Lihat Nilai Akademik</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{route('lihat_nilai.nilai_non_akademik')}}"> <span class="sub-item">Lihat Nilai Non Akademik</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
         <li class="nav-item">
             <a class="nav-link collapsed" data-bs-toggle="collapse" href="#skuSkkMenu" aria-expanded="false" aria-controls="skuSkkMenu">
                 <i class="fas fa-layer-group"></i>
@@ -101,7 +80,15 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ route('pencapaian-sku.index') }}"> <span class="sub-item">Pencapaian Nilai SKU</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('nilai_skk.index') }}"> <span class="sub-item">Penilaian SKK</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('pencapaian-skk.index') }}"> <span class="sub-item">Pencapaian Nilai SKK</span>
                         </a>
                     </li>
                 </ul>
@@ -110,16 +97,20 @@
         <li class="nav-item">
             <a class="nav-link collapsed" data-bs-toggle="collapse" href="#lombaMenu" aria-expanded="false" aria-controls="lombaMenu">
                 <i class="fas fa-layer-group"></i>
-                <span>Clustering Lomba</span>
+                <span>Clustering Regu Inti</span>
                 <span class="caret"></span> </a>
             <div class="collapse" id="lombaMenu">
                 <ul class="nav nav-collapse">
                     <li>
-                        <a href="{{ route('lomba.index') }}"> <span class="sub-item">Lomba</span>
+                        <a href="{{ route('lomba.index') }}"> <span class="sub-item">Kompetensi Lomba</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{{route('pembina.rekomendasi.index')}}"> <span class="sub-item">Clustering</span>
+                        <a href="{{route('pembina.rekomendasi.index')}}"> <span class="sub-item">Hasil Clustering</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#"> <span class="sub-item">Grafik Hasil Clustering</span>
                         </a>
                     </li>
                 </ul>

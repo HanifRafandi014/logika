@@ -7,7 +7,7 @@
 @section('content')
 <head>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         .column-search {
             width: 100%;
@@ -17,11 +17,17 @@
             font-size: 14px;
             transition: all 0.3s ease;
         }
-
         .column-search:focus {
             border-color: #66afe9;
             outline: none;
             box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+        }
+        /* Style for action buttons to be closer */
+        .action-buttons .btn {
+            margin-right: 5px; /* Adjust spacing between buttons */
+        }
+        .action-buttons .btn:last-child {
+            margin-right: 0;
         }
     </style>
 </head>
@@ -29,10 +35,7 @@
 <div class="col-md-12">
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h4 class="card-title mb-0">Data Nilai Skk</h4>
-            <a href="{{ route('nilai_skk.create') }}" class="btn btn-primary btn-sm me-2" title="Tambah Nilai Skk">
-                <i class="fa fa-plus-square" aria-hidden="true"></i>
-            </a>
+            <h4 class="card-title mb-0">Data Nilai SKK Siswa</h4>
         </div>
         <div class="card-body">
             @if (session('success'))
@@ -48,40 +51,47 @@
                         <tr>
                             <th>No</th>
                             <th>Nama Siswa</th>
-                            <th>Pembina</th>
-                            <th>Tingkatan</th>
-                            <th>Jenis SKK</th> {{-- NEW: Add Jenis SKK column header --}}
-                            <th>Tanggal</th>
-                            <th>Status SKK</th>
+                            <th>NISN</th>
+                            <th>Kelas</th>
+                            <th>Nama Pembina</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($penilaianSkksGrouped as $group)
+                        @foreach ($siswasWithPembinaInfo as $siswa)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td>{{ $group->siswa_nama }}</td>
-                                <td>{{ $group->pembina_nama }}</td>
-                                <td>{{ ucfirst($group->tingkatan) }}</td>
-                                <td>{{ $group->jenis_skk }}</td> {{-- NEW: Display jenis_skk --}}
-                                <td>{{ \Carbon\Carbon::parse($group->last_assessment_date)->translatedFormat('d F Y') }}</td>
-                                <td>
-                                    @if ($group->overall_status)
-                                        <span class="badge bg-success">Lulus</span>
-                                    @else
-                                        <span class="badge bg-warning text-dark">Belum Lulus</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    {{-- Pass jenis_skk to the edit route --}}
-                                    <a href="{{ route('nilai_skk.edit_group', ['siswa_id' => $group->siswa_id, 'tingkatan' => $group->tingkatan, 'jenis_skk' => $group->jenis_skk]) }}" class="btn btn-sm btn-warning" title="Edit">
+                                <td>{{ $siswa->siswa_nama }}</td>
+                                <td>{{ $siswa->nisn }}</td>
+                                <td>{{ $siswa->kelas }}</td>
+                                <td>{{ $siswa->last_pembina_name ?? 'Belum Dinilai' }}</td>
+                                <td class="action-buttons">
+                                    {{-- 1. Tambah (Plus) --}}
+                                    <a href="{{ route('nilai_skk.create', [
+                                        'siswa_id' => $siswa->siswa_id,
+                                        'siswa_nama' => $siswa->siswa_nama,
+                                        'siswa_nisn' => $siswa->nisn,
+                                        'siswa_kelas' => $siswa->kelas,
+                                    ]) }}" class="btn btn-primary btn-sm" title="Tambah Penilaian SKK Baru">
+                                        <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                    </a>
+
+                                    {{-- 2. Show (Eye) - Leads to Student's SKK Assessments Page --}}
+                                    <a href="{{ route('nilai_skk.student_assessments', ['siswa_id' => $siswa->siswa_id]) }}" class="btn btn-info btn-sm" title="Lihat Semua Penilaian SKK Siswa">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+
+                                    {{-- 3. Edit (Edit Icon) - Also Leads to Student's SKK Assessments Page --}}
+                                    {{-- The actual editing for a specific SKK will happen on that page --}}
+                                    <a href="{{ route('nilai_skk.student_assessments', ['siswa_id' => $siswa->siswa_id]) }}" class="btn btn-warning btn-sm" title="Kelola/Edit Penilaian SKK Siswa">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    {{-- Pass jenis_skk to the destroy route --}}
-                                    <form action="{{ route('nilai_skk.destroy_group', ['siswa_id' => $group->siswa_id, 'tingkatan' => $group->tingkatan, 'jenis_skk' => $group->jenis_skk]) }}" method="POST" style="display:inline;">
+
+                                    {{-- 4. Delete (Trash) - Deletes ALL SKK Assessments for this student --}}
+                                    <form action="{{ route('nilai_skk.delete_all_for_siswa', ['siswa_id' => $siswa->siswa_id]) }}" method="POST" style="display:inline;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus semua penilaian Skk untuk {{ $group->siswa_nama }} pada tingkatan {{ ucfirst($group->tingkatan) }} dan jenis SKK {{ $group->jenis_skk }}?')" title="Hapus">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus SEMUA penilaian SKK untuk siswa {{ $siswa->siswa_nama }}? Tindakan ini tidak dapat dibatalkan.')" title="Hapus Semua Penilaian SKK Siswa">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </form>
@@ -95,13 +105,14 @@
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script>
     $(document).ready(function () {
         $('#multi-filter-select').DataTable({
             orderCellsTop: true,
             fixedHeader: true,
-            pageLength: 10
+            pageLength: 5,
         });
     });
 </script>

@@ -9,11 +9,7 @@ class Lomba extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    protected $casts = [
-        'nilai_akademiks'    => 'array',
-        'nilai_non_akademiks' => 'array',
-        'status'                => 'boolean', // Assuming 'status' is a boolean
-    ];
+
     public function getRelatedNilaiAkademiksAttribute()
     {
         $ids = $this->nilai_akademiks ?? [];
@@ -24,5 +20,10 @@ class Lomba extends Model
     {
         $ids = $this->nilai_non_akademiks ?? [];
         return NilaiNonAkademik::whereIn('id', $ids)->get();
+    }
+
+    public function variabel()
+    {
+        return $this->belongsTo(VariabelClustering::class, 'variabel_clustering_id');
     }
 }

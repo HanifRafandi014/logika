@@ -8,7 +8,7 @@
 <div class="col-md-12">
     <div class="card">
         <div class="card-header">
-            <h4 class="card-title">Manajemen Keuangan Paguyuban Besar</h4>
+            <h4 class="card-title">Manajemen Keuangan Pengurus Paguyuban Besar</h4>
         </div>
         <div class="card-body">
             @if (session('success'))
@@ -38,6 +38,7 @@
                     <div class="col-md-4 mb-3">
                         <label for="jumlah_pengeluaran" class="form-label">Jumlah (Rp)</label>
                         <input type="number" class="form-control" id="jumlah_pengeluaran" name="jumlah" value="{{ old('jumlah') }}" required min="1">
+                        <small class="form-text text-muted">Tulis nominal pengeluaran tanpa titik. Contoh : 10000</small>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="kategori_pengeluaran" class="form-label">Kategori</label>
@@ -51,7 +52,7 @@
                 <div class="mb-3">
                     <label for="bukti_transaksi" class="form-label">Bukti Transaksi (Opsional)</label>
                     <input type="file" class="form-control" id="bukti_transaksi" name="bukti_transaksi" accept="image/*">
-                    <small class="form-text text-muted">Unggah foto bukti pengeluaran.</small>
+                    <small class="form-text text-muted">Unggah foto bukti pengeluaran. Format yang diizinkan: JPEG, PNG, JPG. Ukuran maksimal: 2MB.</small>
                 </div>
                 <button type="submit" class="btn btn-danger">Catat Pengeluaran</button>
             </form>

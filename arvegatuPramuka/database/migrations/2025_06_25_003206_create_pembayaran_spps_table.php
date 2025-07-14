@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('pembayaran_spps', function (Blueprint $table) {
             $table->id();
-            $table->date('bulan_bayar')->nullable();
-            $table->integer('jumlah');
+            $table->json('bulan_bayar')->nullable();
             $table->string(column: 'bukti_bayar')->nullable();
             $table->boolean('status_pembayaran');
+            $table->foreignId('besaran_biaya_id')->nullable()->constrained('besaran_biayas')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('siswa_id')->nullable()->constrained('siswas')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('orang_tua_id')->nullable()->constrained('orang_tuas')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
