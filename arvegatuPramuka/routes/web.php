@@ -162,7 +162,11 @@ Route::prefix('pembina')->middleware(['auth', 'role:pembina'])->group(function (
     Route::get('/edit-profil-pembina', [EditProfilPembinaController::class, 'editProfilPembina'])->name('editProfilPembina');
     Route::put('/update-profil-pembina', [EditProfilPembinaController::class, 'updateProfilPembina'])->name('updateProfilPembina');
     Route::get('/rekomendasi', [RecommendationController::class, 'index'])->name('pembina.rekomendasi.index');
+    Route::get('/rekomendasi/grafik', [RecommendationController::class, 'grafik'])->name('pembina.rekomendasi.grafik');
+    Route::get('/rekomendasi/export', [RecommendationController::class, 'export'])->name('pembina.rekomendasi.export');
     Route::get('/rekomendasi/{lombaSlug}', [RecommendationController::class, 'showByLomba'])->name('pembina.rekomendasi.showByLomba');
+    Route::post('/rekomendasi/save/{lombaSlug}', [RecommendationController::class, 'save'])->name('pembina.rekomendasi.save');
+
     Route::get('/profil-pembina', [ProfilPembinaController::class, 'index'])->name('pembina.profil');
     Route::post('/profil-pembina', [ProfilPembinaController::class, 'update'])->name('pembina.profil.update');
     Route::resource('lomba', LombaController::class);

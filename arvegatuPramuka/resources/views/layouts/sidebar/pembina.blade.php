@@ -110,7 +110,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#"> <span class="sub-item">Grafik Hasil Clustering</span>
+                        <a href="{{route('pembina.rekomendasi.grafik')}}"> <span class="sub-item">Grafik Hasil Clustering</span>
                         </a>
                     </li>
                 </ul>

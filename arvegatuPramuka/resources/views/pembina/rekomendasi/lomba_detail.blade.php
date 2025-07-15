@@ -1,11 +1,9 @@
 <head>
     <title>Rekomendasi untuk {{ $lombaName ?? 'Lomba' }}</title>
-    {{-- Memastikan DataTables CSS dan JS dimuat dengan benar --}}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <style>
-        /* Styling untuk tombol kembali */
         .back-button {
             display: inline-block;
             margin-bottom: 20px;
@@ -19,7 +17,6 @@
         .back-button:hover {
             background-color: #5a6268;
         }
-        /* Tambahkan style untuk table jika diperlukan, mirip dengan sebelumnya */
         table.dataTable thead th {
             background-color: #f2f2f2;
         }
@@ -39,6 +36,17 @@
             background-color: #d9edf7;
             border-color: #bce8f1;
         }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 
@@ -51,13 +59,18 @@
 @section('content')
     <h1>Rekomendasi Siswa untuk Lomba: {{ $lombaName }}</h1>
 
-    <a href="{{ route('pembina.rekomendasi.index') }}" class="back-button">← Kembali ke Daftar Lomba</a>
-
     @if (isset($error))
         <div class="alert-message alert-danger">
             {{ $error }}
         </div>
     @endif
+
+    @if (session('message'))
+        <div class="alert-message alert-info">
+            {{ session('message') }}
+        </div>
+    @endif
+
     @if (isset($message))
         <div class="alert-message alert-info">
             {{ $message }}
@@ -66,6 +79,39 @@
 
     @if (!empty($rekomendasi))
         <p>Dibutuhkan: {{ $requiredNum }} Siswa</p>
+
+        {{-- Bar tombol & status dalam 1 baris --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+            {{-- Tombol Kembali --}}
+            <div>
+                <a href="{{ route('pembina.rekomendasi.index') }}" class="back-button">← Kembali ke Daftar Lomba</a>
+            </div>
+
+            {{-- Status Terakhir Disimpan --}}
+            @php
+                $lastSaved = \App\Models\HasilClustering::where('kategori_lomba', $lombaName)->latest('updated_at')->first();
+            @endphp
+            <div style="text-align: center; flex: 1;">
+                @if ($lastSaved)
+                    <p style="margin: 0; font-weight: bold; color: #555;">🕒 Terakhir disimpan: {{ $lastSaved->updated_at->format('d M Y') }}</p>
+                @else
+                    <p style="margin: 0; font-weight: bold; color: #888;">Belum ada penyimpanan data</p>
+                @endif
+            </div>
+
+            {{-- Tombol Simpan --}}
+            <div>
+                <form method="POST" action="{{ route('pembina.rekomendasi.save', ['lombaSlug' => \Str::slug($lombaName)]) }}">
+                    @csrf
+                    @foreach ($rekomendasi as $rec)
+                        <input type="hidden" name="rekomendasi[]" value="{{ json_encode($rec) }}">
+                    @endforeach
+                    <button type="submit" class="btn-success">💾 Simpan Rekomendasi</button>
+                </form>
+            </div>
+        </div>
+
+        {{-- Tabel --}}
         <table border="1" class="display" id="rekomendasiTable">
             <thead>
                 <tr>
@@ -93,7 +139,6 @@
 
 <script>
     $(document).ready(function () {
-        // Inisialisasi DataTables untuk tabel rekomendasi
         $('#rekomendasiTable').DataTable({
             orderCellsTop: true,
             fixedHeader: true,

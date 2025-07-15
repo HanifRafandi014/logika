@@ -54,8 +54,16 @@
                 <tr>
                   <td>{{ $index + 1 }}</td> <!-- Nomor Urut -->
                   <td>{{ $variabel->jenis_lomba }}</td>
-                  <td>{{ $variabel->variabel_akademiks }}</td>
-                  <td>{{ $variabel->variabel_non_akademiks }}</td>
+                  <td>
+                    {{ is_array($variabel->variabel_akademiks) 
+                        ? implode(', ', $variabel->variabel_akademiks) 
+                        : $variabel->variabel_akademiks }}
+                  </td>
+                  <td>
+                    {{ is_array($variabel->variabel_non_akademiks) 
+                        ? implode(', ', $variabel->variabel_non_akademiks) 
+                        : $variabel->variabel_non_akademiks }}
+                  </td>
                   <td>
                     <a href="{{ route('data-variabel.edit', $variabel->id) }}" class="btn btn-sm btn-warning" title="Edit">
                         <i class="fas fa-edit"></i>
