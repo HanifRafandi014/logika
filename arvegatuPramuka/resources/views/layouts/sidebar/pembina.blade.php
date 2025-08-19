@@ -97,12 +97,12 @@
         <li class="nav-item">
             <a class="nav-link collapsed" data-bs-toggle="collapse" href="#lombaMenu" aria-expanded="false" aria-controls="lombaMenu">
                 <i class="fas fa-layer-group"></i>
-                <span>Clustering Regu Inti</span>
+                <span>Rekomendasi Regu Inti</span>
                 <span class="caret"></span> </a>
             <div class="collapse" id="lombaMenu">
                 <ul class="nav nav-collapse">
                     <li>
-                        <a href="{{ route('lomba.index') }}"> <span class="sub-item">Kompetensi Lomba</span>
+                        <a href="{{ route('lomba.index') }}"> <span class="sub-item">Kategori Lomba</span>
                         </a>
                     </li>
                     <li>
@@ -110,7 +110,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{route('pembina.rekomendasi.grafik')}}"> <span class="sub-item">Grafik Hasil Clustering</span>
+                        <a href="{{route('pembina.rekomendasi.final_clustering')}}"> <span class="sub-item">Hasil Clustering Akhir</span>
                         </a>
                     </li>
                 </ul>

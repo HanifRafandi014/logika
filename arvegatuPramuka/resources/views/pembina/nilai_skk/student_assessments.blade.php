@@ -60,7 +60,7 @@
             <h4 class="card-title mb-0">Daftar Penilaian SKK untuk {{ $siswa->nama }}</h4>
             {{-- UPDATED BACK BUTTON LINK --}}
             <a href="{{ route('nilai_skk.index') }}" class="btn btn-secondary btn-sm" title="Kembali ke Daftar Siswa">
-                <i class="fa fa-arrow-left" aria-hidden="true"></i> Kembali
+                <i class="fa fa-arrow-left" aria-hidden="true"></i>
             </a>
         </div>
         <div class="card-body">

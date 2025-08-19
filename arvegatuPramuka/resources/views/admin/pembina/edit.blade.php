@@ -86,8 +86,12 @@
                     <label for="password_confirmation">Konfirmasi Password</label>
                     <input type="password" name="password_confirmation" id="password_confirmation" class="form-control">
                 </div>
-                <button type="submit" class="btn btn-primary mt-3">Update</button>
-                <a href="{{ route('data-pembina.index') }}" class="btn btn-secondary mt-3">Batal</a>
+                <button type="submit" class="btn btn-primary mt-3" title="Update">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <a href="{{ route('data-pembina.index') }}" class="btn btn-secondary mt-3" title="Kembali">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
             </form>
         </div>
     </div>

@@ -51,4 +51,14 @@ class Siswa extends Model
     {
         return $this->belongsTo(Pembina::class);
     }
+
+    public function hasil_clustering()
+    {
+        return $this->hasMany(HasilClustering::class, 'hasil_clustering_id');
+    }
+
+    public function clustering_final()
+    {
+        return $this->hasMany(ClusteringFinal::class, 'clustering_final_id');
+    }
 }

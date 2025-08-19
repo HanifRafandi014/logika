@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('hasil_clusterings', function (Blueprint $table) {
+        Schema::create('clustering_finals', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_siswa');
             $table->string('kategori_lomba');
             $table->decimal('rata_rata_skor');
+            $table->foreignId('siswa_id')->nullable()->constrained('siswas')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('hasil_clusterings');
+        Schema::dropIfExists('clustering_finals');
     }
 };

@@ -1,48 +1,25 @@
-<head>
-    <title>Data Profil Alumni</title>
-        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .card {
-            margin-top: 50px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .form-label {
-            font-weight: bold;
-        }
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
-        }
-    </style>
-</head>
-
 @extends('layouts.main')
+
 @section('sidebar')
     @include('layouts.sidebar.alumni')
 @endsection
-@section('content')
-<div class="col-md-12" style="font-size: 11px;">
-    <div class="row justify-content-center">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h4 style="text-align: center;">Data Profil Alumni</h4>
-            </div>
-            <form method="POST" action="{{ route('alumni.profil.update') }}" style="padding-top: 30px;">
-                @csrf
-                {{-- Gunakan @method('PUT') karena ini adalah operasi update --}}
-                @method('PUT') 
 
+@section('content')
+<div class="col-md-8 offset-md-2">
+    <div class="card">
+        <div class="card-header">
+            <h4>Data Profil Alumni</h4>
+        </div>
+
+        <div class="card-body">
+            <form method="POST" action="{{ route('alumni.profil.update') }}">
+                @csrf
+                @method('PUT')
+
+                {{-- Alert error --}}
                 @if ($errors->any())
                     <div class="alert alert-danger">
-                        <ul>
+                        <ul class="mb-0">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -50,6 +27,7 @@
                     </div>
                 @endif
 
+                {{-- Alert success --}}
                 @if(session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}
@@ -58,27 +36,58 @@
 
                 <div class="form-group">
                     <label for="nama">Nama Alumni</label>
-                    {{-- Tambahkan 'readonly' agar field ini tidak bisa diedit --}}
-                    <input type="text" class="form-control" id="nama" name="nama" value="{{ $alumni->siswa->nama ?? '' }}" readonly>
+                    <input type="text" 
+                           class="form-control" 
+                           id="nama" 
+                           name="nama" 
+                           value="{{ $alumni->siswa->nama ?? '' }}" 
+                           readonly>
                 </div>
+
                 <div class="form-group">
                     <label for="tahun_lulus">Tahun Lulus</label>
-                    <input type="text" class="form-control" id="tahun_lulus" name="tahun_lulus" value="{{ $alumni->tahun_lulus ?? '' }}">
+                    <input type="text" 
+                           class="form-control @error('tahun_lulus') is-invalid @enderror" 
+                           id="tahun_lulus" 
+                           name="tahun_lulus" 
+                           value="{{ old('tahun_lulus', $alumni->tahun_lulus ?? '') }}">
+                    @error('tahun_lulus')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
+
                 <div class="form-group">
                     <label for="pekerjaan">Pekerjaan</label>
-                    <input type="text" class="form-control" id="pekerjaan" name="pekerjaan" value="{{ $alumni->pekerjaan ?? '' }}">
+                    <input type="text" 
+                           class="form-control @error('pekerjaan') is-invalid @enderror" 
+                           id="pekerjaan" 
+                           name="pekerjaan" 
+                           value="{{ old('pekerjaan', $alumni->pekerjaan ?? '') }}">
+                    @error('pekerjaan')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
+
                 <div class="form-group">
                     <label for="no_hp">No HP</label>
-                    <input type="text" class="form-control" id="no_hp" name="no_hp" value="{{ $alumni->no_hp ?? '' }}">
+                    <input type="text" 
+                           class="form-control @error('no_hp') is-invalid @enderror" 
+                           id="no_hp" 
+                           name="no_hp" 
+                           value="{{ old('no_hp', $alumni->no_hp ?? '') }}">
+                    @error('no_hp')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
-                
+
                 <button type="submit" class="btn btn-primary" title="Simpan">
                     <i class="fa fa-bookmark" aria-hidden="true"></i>
                 </button>
+                <a href="{{ route(name: 'alumni.dashboard') }}" class="btn btn-secondary" title="Kembali">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
             </form>
         </div>
-    </div>    
+    </div>
 </div>
 @endsection

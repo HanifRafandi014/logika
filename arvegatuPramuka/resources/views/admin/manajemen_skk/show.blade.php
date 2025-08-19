@@ -78,7 +78,9 @@
                 </div>
             </div>
             <hr>
-            <a href="{{ route('manajemen_skk.index') }}" class="btn btn-secondary mt-3">Kembali ke Daftar SKK</a>
+            <a href="{{ route('manajemen_skk.index') }}" class="btn btn-secondary mt-3" title="Kembali">
+                <i class="fas fa-arrow-left"></i>
+            </a>
         </div>
     </div>
 </div>

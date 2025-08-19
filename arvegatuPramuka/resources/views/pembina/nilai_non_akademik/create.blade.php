@@ -127,8 +127,8 @@
 
                 {{-- Tombol Import (di kanan) --}}
                 <div style="flex-shrink: 0;">
-                    <a href="{{ route('nilai_non_akademik.show_import_form', ['kategori' => $selectedCategory]) }}" class="btn btn-info btn-import-category">
-                        <i class="fas fa-file-excel"></i> Import
+                    <a href="{{ route('nilai_non_akademik.show_import_form', ['kategori' => $selectedCategory]) }}" class="btn btn-success btn-import-category" title="Import Nilai Non Akademik">
+                        <i class="fas fa-file-excel"></i> 
                     </a>
                 </div>
             </div>
@@ -142,8 +142,12 @@
 
                 {{-- Moved buttons here, above the table --}}
                 <div class="mb-3 d-flex justify-content-start">
-                    <button type="submit" class="btn btn-primary me-2">Simpan Nilai</button>
-                    <a href="{{ route('nilai_non_akademik.index') }}" class="btn btn-secondary">Batal</a>
+                    <button type="submit" class="btn btn-primary me-2" title="Simpan Nilai">
+                        <i class="fas fa-save"></i>
+                    </button>
+                    <a href="{{ route('nilai_non_akademik.index') }}" class="btn btn-secondary" title="Batal">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
                 </div>
 
                 <div class="table-responsive">

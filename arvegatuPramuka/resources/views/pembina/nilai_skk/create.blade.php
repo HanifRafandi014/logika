@@ -17,7 +17,6 @@
         <div class="card-body">
             <form id="skkAssessmentForm" action="{{ route('nilai_skk.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-
                 {{-- Nama Siswa --}}
                 <div class="mb-3">
                     <label for="siswa_display_name" class="form-label">Nama Siswa</label>
@@ -59,23 +58,15 @@
                 {{-- Tingkatan --}}
                 <div class="mb-3">
                     <label for="tingkatan" class="form-label">Tingkatan</label>
-                    <select class="form-control" id="tingkatan" name="tingkatan" required>
+                    <select class="form-control" id="tingkatan" name="tingkatan" required disabled>
                         <option value="">Pilih Tingkatan</option>
-                        @foreach($tingkatans as $tingkatanOption)
-                            <option 
-                                value="{{ $tingkatanOption }}"
-                                {{ old('tingkatan') == $tingkatanOption ? 'selected' : '' }}
-                                {{ in_array($tingkatanOption, $disabledTingkatans ?? []) ? 'disabled' : '' }}>
-                                {{ ucfirst($tingkatanOption) }}
-                            </option>
-                        @endforeach
                     </select>
                     @error('tingkatan')
                         <div class="text-danger">{{ $message }}</div>
                     @enderror
                 </div>
 
-                {{-- Tanggal --}}
+                {{-- Tanggal Penilaian --}}
                 <div class="mb-3">
                     <label for="assessment_date" class="form-label">Tanggal Penilaian</label>
                     <input type="date" class="form-control" name="assessment_date" value="{{ old('assessment_date', date('Y-m-d')) }}" required>
@@ -94,9 +85,46 @@
                     <small class="form-text text-muted">Format yang diizinkan: PDF. Ukuran maksimal: 2MB.</small>
                 </div>
 
+                {{-- Tombol Muat dan Status --}}
                 <div class="mb-3">
-                    <button type="submit" class="btn btn-success">Simpan</button>
-                    <a href="{{ route('nilai_skk.index') }}" class="btn btn-secondary">Batal</a>
+                    <button type="button" id="getSkkButton" class="btn btn-info" title="Muat Penilaian SKK">
+                        <i class="fas fa-spinner"></i>
+                    </button>
+                </div>
+
+                <div class="mb-3">
+                    <label for="status_skk_display" class="form-label">Status SKK</label>
+                    <input type="text" class="form-control" id="status_skk_display" value="Belum Dimuat" readonly>
+                </div>
+
+                {{-- Detail Penilaian SKK --}}
+                <div id="skk-detail-section" style="display:none;">
+                    <hr>
+                    <h5 class="card-title mt-4">Detail Penilaian SKK</h5>
+                    <div class="table-responsive">
+                        <table id="skkDetailTable" class="display table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Deskripsi SKK</th>
+                                    <th>Checklist Penilaian</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{-- Data dinamis dari JavaScript --}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Tombol Aksi --}}
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary mt-3" title="Simpan Penilaian">
+                        <i class="fas fa-save"></i>
+                    </button>
+                    <a href="{{ route('nilai_skk.index') }}" class="btn btn-secondary mt-3" title="Kembali">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
                 </div>
             </form>
         </div>
@@ -104,26 +132,172 @@
 </div>
 @endsection
 
-@push('scripts')
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script>
-    $(document).ready(function () {
-        $('#jenis_skk').on('change', function () {
-            const jenis = $(this).val();
-            const siswaId = '{{ $selectedSiswaId }}';
-            const siswaNama = '{{ $selectedSiswaNama }}';
-            const siswaNisn = '{{ $selectedSiswaNisn }}';
-            const siswaKelas = '{{ $selectedSiswaKelas }}';
+$(function () {
+    const form = $('#skkAssessmentForm');
+    const jenisSkk = $('#jenis_skk');
+    const tingkatan = $('#tingkatan');
+    const btnLoad = $('#getSkkButton');
+    const tableBody = $('#skkDetailTable tbody');
+    const statusField = $('#status_skk_display');
 
-            if (jenis && siswaId) {
-                const url = new URL(window.location.href);
-                url.searchParams.set('siswa_id', siswaId);
-                url.searchParams.set('siswa_nama', siswaNama);
-                url.searchParams.set('siswa_nisn', siswaNisn);
-                url.searchParams.set('siswa_kelas', siswaKelas);
-                url.searchParams.set('jenis_skk', jenis);
-                window.location.href = url.toString();
+    let totalItems = 0;
+    let checkedSkkIds = new Set();
+
+    // --- DISABLE tingkatan di awal ---
+    tingkatan.prop('disabled', true);
+
+    // Saat jenis_skk berubah, cek tingkatan otomatis
+    jenisSkk.on('change', function () {
+        const siswaId = $('input[name="siswa_id"]').val();
+        const selectedJenis = $(this).val();
+
+        if (!siswaId || !selectedJenis) {
+            tingkatan.html('<option value="">Pilih Tingkatan</option>').prop('disabled', true);
+            return;
+        }
+
+        // Panggil API untuk dapatkan tingkatan berikutnya
+        $.ajax({
+            url: "{{ route('nilai_skk.next_tingkatan') }}",
+            method: 'GET',
+            data: {
+                siswa_id: siswaId,
+                jenis_skk: selectedJenis
+            },
+            success: function (res) {
+                if (res.allowed) {
+                    tingkatan.html(`<option value="${res.allowed}" selected>${res.allowed}</option>`);
+                } else {
+                    tingkatan.html('<option value="">Semua tingkatan sudah dinilai</option>');
+                }
+                tingkatan.prop('disabled', true); // tetap disabled
+            },
+            error: function (xhr) {
+                console.error(xhr);
+                tingkatan.html('<option value="">Gagal memuat tingkatan</option>').prop('disabled', true);
             }
         });
     });
+
+    function updateOverallStatus() {
+        const currentCheckedCount = checkedSkkIds.size;
+        if (totalItems === 0) {
+            statusField.val("Tidak ada SKK");
+            form.find('button[type="submit"]').prop('disabled', true);
+        } else if (currentCheckedCount === totalItems) {
+            statusField.val("Memenuhi");
+            form.find('button[type="submit"]').prop('disabled', false);
+        } else {
+            statusField.val("Tidak Memenuhi");
+            form.find('button[type="submit"]').prop('disabled', false);
+        }
+    }
+
+    function updateCheckboxesOnDraw() {
+        $('#skkDetailTable tbody .skk-checkbox').each(function() {
+            const skkId = $(this).attr('data-skk-id');
+            $(this).prop('checked', checkedSkkIds.has(skkId));
+        });
+    }
+
+    btnLoad.on('click', function () {
+        if (!jenisSkk.val() || !tingkatan.val()) {
+            alert('Pilih jenis SKK dan pastikan tingkatan terisi otomatis.');
+            return;
+        }
+
+        // Disable input sementara saat loading
+        jenisSkk.prop('disabled', true);
+        tingkatan.prop('disabled', true);
+        btnLoad.prop('disabled', true).text('Memuat...');
+
+        // Reset tabel dan data checklist
+        if ($.fn.DataTable.isDataTable('#skkDetailTable')) {
+            $('#skkDetailTable').DataTable().destroy();
+        }
+        tableBody.empty();
+        checkedSkkIds.clear();
+
+        $.ajax({
+            url: "{{ route('nilai_skk.getSkkItems') }}",
+            method: 'GET',
+            data: { jenis_skk: jenisSkk.val(), tingkatan: tingkatan.val() },
+            success: function(data) {
+                totalItems = data.length;
+
+                if (totalItems === 0) {
+                    tableBody.append(`<tr><td colspan="3" class="text-center">Tidak ada data SKK</td></tr>`);
+                } else {
+                    let num = 1;
+                    data.forEach(item => {
+                        tableBody.append(`
+                            <tr>
+                                <td>${num++}</td>
+                                <td>${item.keterangan_skk}</td>
+                                <td class="text-center">
+                                    <input type="checkbox" data-skk-id="${item.id}" class="skk-checkbox">
+                                </td>
+                            </tr>
+                        `);
+                    });
+                }
+
+                // Inisialisasi DataTable
+                $('#skkDetailTable').DataTable({
+                    pageLength: 5,
+                    searching: true,
+                    ordering: false,
+                    drawCallback: updateCheckboxesOnDraw
+                });
+
+                $('#skk-detail-section').slideDown();
+
+                // Event checklist
+                $('#skkDetailTable tbody').off('change', '.skk-checkbox').on('change', '.skk-checkbox', function() {
+                    const skkId = $(this).attr('data-skk-id');
+                    if ($(this).is(':checked')) {
+                        checkedSkkIds.add(skkId);
+                    } else {
+                        checkedSkkIds.delete(skkId);
+                    }
+                    updateOverallStatus();
+                });
+
+                updateOverallStatus();
+
+                // Enable kembali jenis SKK, tingkatan tetap disabled
+                jenisSkk.prop('disabled', false);
+                tingkatan.prop('disabled', true);
+                btnLoad.prop('disabled', false).text('Muat Daftar Penilaian');
+            },
+            error: function(xhr) {
+                alert("Gagal memuat data: " + xhr.responseText);
+                jenisSkk.prop('disabled', false);
+                tingkatan.prop('disabled', true);
+                btnLoad.prop('disabled', false).text('Muat Daftar Penilaian');
+            }
+        });
+    });
+
+    // Saat submit, kirim ID checklist sebagai input hidden
+    form.on('submit', function () {
+        $('input[name="checked_skk_items[]"]').remove();
+        checkedSkkIds.forEach(skkId => {
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'checked_skk_items[]',
+                value: skkId
+            }).appendTo(form);
+        });
+
+        // Pastikan select tidak disabled saat submit
+        jenisSkk.prop('disabled', false);
+        tingkatan.prop('disabled', false);
+    });
+});
 </script>
-@endpush
+
+

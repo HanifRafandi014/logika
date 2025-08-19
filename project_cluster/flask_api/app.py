@@ -1,5 +1,3 @@
-# app.py
-
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from sqlalchemy import text
@@ -26,7 +24,6 @@ def fetch_student_data():
         """
         df = pd.read_sql(text(query), db.bind)
 
-        # Tambah status SKU
         sku_df = pd.read_sql(text("""
             SELECT siswa_id, MAX(status) AS status_sku
             FROM penilaian_skus
@@ -34,7 +31,6 @@ def fetch_student_data():
         """), db.bind)
         sku_df.rename(columns={"siswa_id": "id_siswa", "status_sku": "Status SKU"}, inplace=True)
 
-        # Tambah status SKK
         skk_df = pd.read_sql(text("""
             SELECT siswa_id, MAX(status) AS status_skk
             FROM penilaian_skks
@@ -42,7 +38,6 @@ def fetch_student_data():
         """), db.bind)
         skk_df.rename(columns={"siswa_id": "id_siswa", "status_skk": "Status SKK"}, inplace=True)
 
-        # Gabung
         pivot_df = df.pivot_table(
             index=['id_siswa', 'nama_siswa'],
             columns='nama_variabel',
@@ -55,7 +50,6 @@ def fetch_student_data():
         merged_df['Status SKU'] = merged_df['Status SKU'].fillna(0)
         merged_df['Status SKK'] = merged_df['Status SKK'].fillna(0)
 
-        # Rename untuk model compatibility
         merged_df.rename(columns={
             'id_siswa': 'ID Siswa',
             'nama_siswa': 'Nama Siswa'
@@ -88,30 +82,47 @@ def fetch_competitions_data():
     finally:
         db.close()
 
-# Inisialisasi recommender
+# Inisialisasi global recommender
 recommender = None
-try:
-    student_df = fetch_student_data()
-    competitions_data = fetch_competitions_data()
 
-    recommender = StudentRecommender(competitions_data, student_df)
-    recommender.load_and_preprocess_data()
-    recommender.perform_clustering()
-    recommender.generate_recommendations()
+def initialize_model():
+    global recommender
+    try:
+        student_df = fetch_student_data()
+        competitions_data = fetch_competitions_data()
+        recommender = StudentRecommender(competitions_data, student_df)
+        recommender.load_and_preprocess_data()
+        recommender.perform_clustering()
+        recommender.generate_recommendations()
+    except Exception as e:
+        traceback.print_exc()
+        recommender = None
 
-except Exception as e:
-    traceback.print_exc()
-    recommender = None
+# Inisialisasi awal
+initialize_model()
 
 @app.route('/')
 def home():
     return jsonify({"message": "API Rekomendasi Siswa Pramuka", "status": "running"})
 
+@app.route('/api/normalized-data', methods=['GET'])
+def get_normalized_data():
+    if recommender is None:
+        return jsonify({"error": "Model belum siap."}), 500
+    try:
+        df = recommender.df_normalized.copy()
+        df.insert(0, 'ID Siswa', recommender.df_main['ID Siswa'].values)
+        df.insert(1, 'Nama Siswa', recommender.df_main['Nama Siswa'].values)
+        return jsonify(df.to_dict(orient='records'))
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/recommendations', methods=['GET'])
 def get_all_recommendations():
     if recommender is None:
         return jsonify({"error": "Model belum siap."}), 500
-
     try:
         df = recommender.generate_recommendations()
         if df.empty:
@@ -125,22 +136,70 @@ def get_all_recommendations():
 def get_recommendations_for_lomba(lomba_name):
     if recommender is None:
         return jsonify({"error": "Model belum siap."}), 500
-
     try:
         clean_lomba = lomba_name.strip().lower()
         df = recommender.generate_recommendations()
-
         df_filtered = df[df['Lomba Rekomendasi'].str.strip().str.lower() == clean_lomba]
         if df_filtered.empty:
             return jsonify({"message": f"Tidak ada rekomendasi untuk {lomba_name}."}), 200
-
         required_num = recommender.get_required_student_count(clean_lomba)
         display_df = df_filtered.head(required_num if required_num > 0 else len(df_filtered))
-
         return jsonify(display_df[[
             'ID Siswa', 'Nama Siswa', 'Lomba Rekomendasi', 'Kategori Cluster', 'Rata-rata Skor Lomba', 'Fase Rekomendasi'
         ]].to_dict(orient='records')), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/clustering-metrics', methods=['GET'])
+def clustering_metrics():
+    if recommender is None:
+        return jsonify({"error": "Model belum siap."}), 500
+    try:
+        return jsonify(recommender.get_clustering_metrics())
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
+@app.route('/api/cluster-mapping', methods=['GET'])
+def get_cluster_mapping():
+    if recommender is None:
+        return jsonify({"error": "Model belum siap."}), 500
+    try:
+        return jsonify(recommender.get_cluster_mapping())
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/lomba-status', methods=['GET'])
+def get_lomba_status():
+    if recommender is None:
+        return jsonify({"error": "Model belum siap."}), 500
+    try:
+        df = recommender.get_lomba_status()
+        return jsonify(df.to_dict(orient='records'))
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/lomba-rankings', methods=['GET'])
+def get_lomba_rankings():
+    if recommender is None:
+        return jsonify({"error": "Model belum siap."}), 500
+    try:
+        data = recommender.get_lomba_rankings()
+        return jsonify(data)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/versatile-students', methods=['GET'])
+def get_versatile_students():
+    if recommender is None:
+        return jsonify({"error": "Model belum siap."}), 500
+    try:
+        df = recommender.generate_versatile_students()
+        return jsonify(df.to_dict(orient='records'))
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500

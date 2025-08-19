@@ -162,7 +162,14 @@ Route::prefix('pembina')->middleware(['auth', 'role:pembina'])->group(function (
     Route::get('/edit-profil-pembina', [EditProfilPembinaController::class, 'editProfilPembina'])->name('editProfilPembina');
     Route::put('/update-profil-pembina', [EditProfilPembinaController::class, 'updateProfilPembina'])->name('updateProfilPembina');
     Route::get('/rekomendasi', [RecommendationController::class, 'index'])->name('pembina.rekomendasi.index');
+    Route::get('/rekomendasi/normalisasi', [RecommendationController::class, 'dataNormalisasi'])->name('pembina.rekomendasi.normalisasi');
     Route::get('/rekomendasi/grafik', [RecommendationController::class, 'grafik'])->name('pembina.rekomendasi.grafik');
+    Route::get('/rekomendasi/status', [RecommendationController::class, 'status'])->name('pembina.rekomendasi.status');
+    Route::get('/rekomendasi/ranking', [RecommendationController::class, 'ranking'])->name('pembina.rekomendasi.ranking');
+    Route::get('/rekomendasi/detail-potensi', [RecommendationController::class, 'detailPotensi'])->name('pembina.rekomendasi.detail_potensi');
+    Route::get('/rekomendasi/final-clustering', [RecommendationController::class, 'finalClustering'])->name('pembina.rekomendasi.final_clustering');
+    Route::post('/rekomendasi/final-clustering/save', [RecommendationController::class, 'saveFinalClustering'])->name('pembina.rekomendasi.save_final_clustering');
+    Route::get('/export-final-clustering', [RecommendationController::class, 'exportFinalClustering'])->name('pembina.rekomendasi.export_final_clustering');
     Route::get('/rekomendasi/export', [RecommendationController::class, 'export'])->name('pembina.rekomendasi.export');
     Route::get('/rekomendasi/{lombaSlug}', [RecommendationController::class, 'showByLomba'])->name('pembina.rekomendasi.showByLomba');
     Route::post('/rekomendasi/save/{lombaSlug}', [RecommendationController::class, 'save'])->name('pembina.rekomendasi.save');
@@ -186,6 +193,8 @@ Route::prefix('pembina')->middleware(['auth', 'role:pembina'])->group(function (
     Route::get('/nilai-skk/create', [PenilaianSkkController::class, 'create'])->name('nilai_skk.create');
     Route::post('/nilai-skk', [PenilaianSkkController::class, 'store'])->name('nilai_skk.store');
     Route::get('/nilai-skk/get-skk-items', [PenilaianSkkController::class, 'getSkkItems'])->name('nilai_skk.getSkkItems');
+    // routes/web.php
+    Route::get('/nilai-skk/next-tingkatan', [PenilaianSkkController::class, 'getNextTingkatan'])->name('nilai_skk.next_tingkatan');
     Route::get('/nilai-skk/student/{siswa_id}', [PenilaianSkkController::class, 'studentAssessments'])->name('nilai_skk.student_assessments');
     Route::get('/nilai-skk/{siswa_id}/{tingkatan}/{jenis_skk}', [PenilaianSkkController::class, 'show'])->name('nilai_skk.show_group');
     Route::get('/nilai-skk/{siswa_id}/{tingkatan}/{jenis_skk}/edit', [PenilaianSkkController::class, 'edit'])->name('nilai_skk.edit_group');

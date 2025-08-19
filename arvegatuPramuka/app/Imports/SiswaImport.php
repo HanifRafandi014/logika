@@ -13,6 +13,11 @@ class SiswaImport implements ToModel, WithHeadingRow, WithStartRow
 {
     public function model(array $row)
     {
+        // Lewati baris kosong
+        if (empty($row['nama']) || empty($row['nisn'])) {
+            return null;
+        }
+
         $namaBersih = strtolower(str_replace(' ', '', $row['nama']));
         $generatedUsername = $namaBersih . '123';
         $generatedPassword = $generatedUsername;
@@ -26,9 +31,8 @@ class SiswaImport implements ToModel, WithHeadingRow, WithStartRow
                 'role' => 'siswa'
             ]);
         } else {
-            // Cek apakah guru sudah terdaftar
             if (Siswa::where('user_id', $existingUser->id)->exists()) {
-                return null; // Sudah ada guru dan user
+                return null;
             }
             $user = $existingUser;
         }

@@ -181,7 +181,7 @@
         </div>
 
         <a href="{{ route('data-siswa.index') }}" class="btn btn-secondary btn-sm mt-4" title="Kembali">
-            <i class="fas fa-arrow-left"></i> Kembali
+            <i class="fas fa-arrow-left"></i> 
         </a>
     </div>
 </div>

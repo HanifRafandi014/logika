@@ -81,10 +81,10 @@
             <input type="password" class="form-control" id="password_confirmation" name="password_confirmation">
           </div>
           <button type="submit" class="btn btn-primary mr-2" title="Update">
-            <i class="fas fa-sync-alt"></i> Update
+            <i class="fas fa-sync-alt"></i>
           </button>
           <a href="{{ route('data-siswa.index') }}" class="btn btn-secondary ml-2" title="Kembali">
-            <i class="fas fa-arrow-left"></i> Batal
+            <i class="fas fa-arrow-left"></i> 
           </a>
         </div>
       </form>

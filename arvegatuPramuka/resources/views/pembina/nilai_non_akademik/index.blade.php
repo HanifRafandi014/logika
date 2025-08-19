@@ -141,7 +141,16 @@
             <select id="categoryFilter" class="form-control">
                 <option value="">Pilih Kategori</option>
                 @foreach ($categories as $category)
-                    <option value="{{ $category }}" {{ $selectedCategory == $category ? 'selected' : '' }}>
+                    <option value="{{ $category }}"
+                        {{ $selectedCategory == $category ? 'selected' : '' }}
+                        @if ($pembinaCategory === 'Pembina Pramuka')
+                            {{-- Jika pembina adalah Pembina Pramuka, hanya kategori ini yang aktif --}}
+                            @if ($category !== 'Pembina Pramuka') disabled @endif
+                        @else
+                            {{-- Jika bukan Pembina Pramuka, hanya kategori sesuai pembina yang aktif --}}
+                            @if ($pembinaCategory !== $category) disabled @endif
+                        @endif
+                    >
                         {{ $category }}
                     </option>
                 @endforeach
@@ -225,17 +234,25 @@
         var table = $('#multi-filter-select').DataTable({
             orderCellsTop: true,
             fixedHeader: true,
-            pageLength: 5, // Default page length
+            pageLength: 5,
         });
+
+        // Ambil kategori pembina & kategori yang dipilih dari Blade
+        var pembinaCategory = "{{ $pembinaCategory }}";
+        var selectedCategory = "{{ $selectedCategory }}";
+
+        // Jika belum ada kategori di URL, auto-redirect sesuai kategori pembina
+        if (!selectedCategory && pembinaCategory) {
+            window.location.href = "{{ route('nilai_non_akademik.index') }}?kategori=" + encodeURIComponent(pembinaCategory);
+            return; // stop script agar tidak lanjut ke listener dropdown
+        }
 
         // Handle category filter dropdown change
         $('#categoryFilter').on('change', function() {
             var selectedCategory = $(this).val();
             if (selectedCategory) {
-                // Redirect to the index page with the selected category to show relevant scores
                 window.location.href = "{{ route('nilai_non_akademik.index') }}?kategori=" + encodeURIComponent(selectedCategory);
             } else {
-                // If "Pilih Kategori" is selected, just redirect to index without category
                 window.location.href = "{{ route('nilai_non_akademik.index') }}";
             }
         });

@@ -21,24 +21,58 @@ class PenilaianSkkController extends Controller
             if (!$pembina) {
                 return redirect()->route('dashboard')->with('error', 'Data pembina Anda tidak ditemukan.');
             }
-        
-            $siswasWithPembinaInfo = Siswa::leftJoin('penilaian_skks', 'siswas.id', '=', 'penilaian_skks.siswa_id')
-                                            ->leftJoin('pembinas', 'penilaian_skks.pembina_id', '=', 'pembinas.id')
-                                            ->select(
-                                                'siswas.id as siswa_id',
-                                                'siswas.nama as siswa_nama',
-                                                'siswas.nisn',
-                                                'siswas.kelas',
-                                                DB::raw('MAX(CASE WHEN penilaian_skks.pembina_id IS NOT NULL THEN pembinas.nama ELSE NULL END) as last_pembina_name')
-                                            )
-                                            ->groupBy('siswas.id', 'siswas.nama', 'siswas.nisn', 'siswas.kelas')
-                                            ->get();
+
+            // Ambil kelas pembina yang login
+            $kelasPembina = $pembina->kelas;
+
+            $siswasWithPembinaInfo = Siswa::where('siswas.kelas', $kelasPembina) // Filter sesuai kelas pembina
+                ->leftJoin('penilaian_skks', 'siswas.id', '=', 'penilaian_skks.siswa_id')
+                ->leftJoin('pembinas', 'penilaian_skks.pembina_id', '=', 'pembinas.id')
+                ->select(
+                    'siswas.id as siswa_id',
+                    'siswas.nama as siswa_nama',
+                    'siswas.nisn',
+                    'siswas.kelas',
+                    DB::raw('MAX(CASE WHEN penilaian_skks.pembina_id IS NOT NULL THEN pembinas.nama ELSE NULL END) as last_pembina_name')
+                )
+                ->groupBy('siswas.id', 'siswas.nama', 'siswas.nisn', 'siswas.kelas')
+                ->get();
 
             return view('pembina.nilai_skk.index', compact('siswasWithPembinaInfo'));
-
         } else {
             return redirect()->route('login')->with('error', 'Anda harus login sebagai pembina.');
         }
+    }
+
+    public function getNextTingkatan(Request $request)
+    {
+        $request->validate([
+            'siswa_id'  => 'required|exists:siswas,id',
+            'jenis_skk' => 'required|string'
+        ]);
+
+        $siswaId   = (int) $request->input('siswa_id');
+        $jenisSkk  = $request->input('jenis_skk');
+        $tingkatans = ['Purwa', 'Madya', 'Utama'];
+
+        $existing = PenilaianSkk::where('siswa_id', $siswaId)
+            ->where('jenis_skk', $jenisSkk)
+            ->pluck('tingkatan')
+            ->toArray();
+
+        $allowed = null;
+        foreach ($tingkatans as $t) {
+            if (!in_array($t, $existing)) {
+                $allowed = $t; // tingkatan berikutnya yang boleh
+                break;
+            }
+        }
+
+        return response()->json([
+            'allowed'  => $allowed,                                 // contoh: "Purwa" | "Madya" | "Utama" | null (kalau sudah lengkap)
+            'disabled' => $allowed ? array_values(array_diff($tingkatans, [$allowed])) : $tingkatans,
+            'existing' => $existing,
+        ]);
     }
 
     public function create(Request $request)
@@ -50,30 +84,23 @@ class PenilaianSkkController extends Controller
         $selectedJenisSkk = $request->query('jenis_skk');
 
         $siswas = Siswa::all();
-        $tingkatans = ['Purwa', 'Madya', 'Utama'];
+        $allTingkatans = ['Purwa', 'Madya', 'Utama'];
         $jenisSkks = ManajemenSkk::distinct()->pluck('jenis_skk');
-        $disabledTingkatans = [];
+        $tingkatans = $allTingkatans;
 
         if ($selectedSiswaId && $selectedJenisSkk) {
-            $existingTingkatans = \App\Models\PenilaianSkk::where('siswa_id', $selectedSiswaId)
+            $existingTingkatans = PenilaianSkk::where('siswa_id', $selectedSiswaId)
                                     ->where('jenis_skk', $selectedJenisSkk)
-                                    ->select('tingkatan')
                                     ->pluck('tingkatan')
                                     ->toArray();
 
-            // Cek apakah semua tingkatan sudah ada
-            if (count($existingTingkatans) >= 3) {
+            // Ambil tingkatan yang belum dinilai
+            $tingkatans = array_values(array_diff($allTingkatans, $existingTingkatans));
+
+            // Kalau sudah lengkap semua tingkatan
+            if (empty($tingkatans)) {
                 return redirect()->route('nilai_skk.student_assessments', ['siswa_id' => $selectedSiswaId])
                                 ->with('warning', 'Semua tingkatan untuk jenis SKK ini sudah dinilai.');
-            }
-
-            // Tentukan tingkatan berikutnya yang belum dicapai (Purwa -> Madya -> Utama)
-            foreach ($tingkatans as $index => $tingkat) {
-                if (!in_array($tingkat, $existingTingkatans)) {
-                    // Semua tingkatan kecuali yang ini akan di-disabled
-                    $disabledTingkatans = array_filter($tingkatans, fn($t) => $t !== $tingkat);
-                    break;
-                }
             }
         }
 
@@ -81,7 +108,6 @@ class PenilaianSkkController extends Controller
             'siswas',
             'tingkatans',
             'jenisSkks',
-            'disabledTingkatans',
             'selectedSiswaId',
             'selectedSiswaNama',
             'selectedSiswaNisn',
@@ -109,7 +135,7 @@ class PenilaianSkkController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
+        $validated = $request->validate([
             'siswa_id' => 'required|exists:siswas,id',
             'tingkatan' => 'required|string|in:Purwa,Madya,Utama',
             'jenis_skk' => 'required|string',
@@ -119,25 +145,19 @@ class PenilaianSkkController extends Controller
             'bukti_pdf' => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
-        $pembinaId = null;
-        if (Auth::check() && Auth::user()->role === 'pembina') {
-            $pembina = Auth::user()->pembina;
-            if ($pembina) {
-                $pembinaId = $pembina->id;
-            } else {
-                return redirect()->back()->withInput()->withErrors(['pembina_id' => 'Pembina tidak ditemukan.']);
-            }
-        } else {
-            return redirect()->back()->withInput()->withErrors(['auth' => 'Anda harus login sebagai pembina.']);
+        // Ambil pembina_id dari user login
+        if (!Auth::check() || Auth::user()->role !== 'pembina') {
+            return back()->withInput()->withErrors(['auth' => 'Anda harus login sebagai pembina.']);
         }
+        $pembina = Auth::user()->pembina;
+        if (!$pembina) {
+            return back()->withInput()->withErrors(['pembina_id' => 'Pembina tidak ditemukan.']);
+        }
+        $pembinaId = $pembina->id;
 
-        $siswaId = $validatedData['siswa_id'];
-        $tingkatan = $validatedData['tingkatan'];
-        $jenisSkk = $validatedData['jenis_skk'];
-        $assessmentDate = $validatedData['assessment_date'];
-        $checkedItems = $validatedData['checked_skk_items'] ?? [];
         $buktiPdfPath = null;
 
+        // Upload file bukti_pdf jika ada
         if ($request->hasFile('bukti_pdf')) {
             $file = $request->file('bukti_pdf');
             $fileName = time() . '_' . $file->getClientOriginalName();
@@ -146,58 +166,59 @@ class PenilaianSkkController extends Controller
             $buktiPdfPath = 'storage/bukti_skk_pdfs/' . $fileName;
         }
 
-        $allRelevantSkkItems = ManajemenSkk::where('tingkatan', $tingkatan)
-                                               ->where('jenis_skk', $jenisSkk)
-                                               ->get();
-
         DB::beginTransaction();
         try {
-            $existingAssessmentForPdf = PenilaianSkk::where('siswa_id', $siswaId)
-                                                     ->where('tingkatan', $tingkatan)
-                                                     ->where('jenis_skk', $jenisSkk)
-                                                     ->where('pembina_id', $pembinaId)
-                                                     ->first();
-            
-            if ($existingAssessmentForPdf && $existingAssessmentForPdf->bukti_pdf) {
-                $oldPdfPath = str_replace('storage/', 'public/', $existingAssessmentForPdf->bukti_pdf);
+            // Hapus file lama jika ada
+            $oldPdf = PenilaianSkk::where('siswa_id', $validated['siswa_id'])
+                ->where('tingkatan', $validated['tingkatan'])
+                ->where('jenis_skk', $validated['jenis_skk'])
+                ->where('pembina_id', $pembinaId)
+                ->first();
+
+            if ($oldPdf && $oldPdf->bukti_pdf) {
+                $oldPdfPath = str_replace('storage/', 'public/', $oldPdf->bukti_pdf);
                 if (Storage::exists($oldPdfPath)) {
                     Storage::delete($oldPdfPath);
                 }
             }
 
-            PenilaianSkk::where('siswa_id', $siswaId)
-                        ->where('tingkatan', $tingkatan)
-                        ->where('jenis_skk', $jenisSkk)
-                        ->where('pembina_id', $pembinaId)
-                        ->delete();
+            // Hapus semua penilaian lama
+            PenilaianSkk::where('siswa_id', $validated['siswa_id'])
+                ->where('tingkatan', $validated['tingkatan'])
+                ->where('jenis_skk', $validated['jenis_skk'])
+                ->where('pembina_id', $pembinaId)
+                ->delete();
 
-            foreach ($allRelevantSkkItems as $skkItem) {
-                $status = in_array($skkItem->id, $checkedItems);
+            // Ambil semua item SKK sesuai tingkatan & jenis
+            $allItems = ManajemenSkk::where('tingkatan', $validated['tingkatan'])
+                ->where('jenis_skk', $validated['jenis_skk'])
+                ->get();
 
+            // Insert penilaian baru
+            foreach ($allItems as $item) {
                 PenilaianSkk::create([
-                    'siswa_id' => $siswaId,
+                    'siswa_id' => $validated['siswa_id'],
                     'pembina_id' => $pembinaId,
-                    'manajemen_skk_id' => $skkItem->id,
-                    'status' => $status,
-                    'tanggal' => $assessmentDate,
-                    'tingkatan' => $tingkatan,
-                    'jenis_skk' => $jenisSkk,
+                    'manajemen_skk_id' => $item->id,
+                    'status' => in_array($item->id, $validated['checked_skk_items'] ?? []),
+                    'tanggal' => $validated['assessment_date'],
+                    'tingkatan' => $validated['tingkatan'],
+                    'jenis_skk' => $validated['jenis_skk'],
                     'bukti_pdf' => $buktiPdfPath,
                 ]);
             }
 
             DB::commit();
-            // Redirect back to the student_assessments page after adding
             return redirect()->route('nilai_skk.student_assessments', [
-                'siswa_id' => $siswaId
+                'siswa_id' => $validated['siswa_id']
             ])->with('success', 'Penilaian SKK berhasil ditambahkan!');
         } catch (\Exception $e) {
             DB::rollBack();
-            if ($buktiPdfPath && Storage::exists(str_replace('storage/', 'public/', $buktiPdfPath))) {
+            if ($buktiPdfPath) {
                 Storage::delete(str_replace('storage/', 'public/', $buktiPdfPath));
             }
             Log::error('Error storing Penilaian SKK: ' . $e->getMessage());
-            return redirect()->back()->withInput()->withErrors(['error' => 'Gagal menyimpan penilaian SKK. Silakan coba lagi.']);
+            return back()->withInput()->withErrors(['error' => 'Gagal menyimpan penilaian SKK.']);
         }
     }
 

@@ -17,7 +17,7 @@
             <h4 class="card-title mb-0">Detail SKK: {{ $siswa->nama }} ({{ ucfirst($tingkatan) }} - {{ $jenis_skk }})</h4>
             {{-- Link back to the student's grouped assessments --}}
             <a href="{{ route('nilai_skk.student_assessments', ['siswa_id' => $siswa->id]) }}" class="btn btn-secondary btn-sm" title="Kembali ke Daftar Penilaian Siswa">
-                <i class="fa fa-arrow-left" aria-hidden="true"></i> Kembali
+                <i class="fa fa-arrow-left" aria-hidden="true"></i>
             </a>
         </div>
         <div class="card-body">
@@ -79,7 +79,7 @@
                             @foreach ($allSkkItems as $skkItem)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $skkItem->deskripsi }}</td>
+                                    <td>{{ $skkItem->keterangan_skk }}</td>
                                     <td>
                                         @if (isset($assessedSkkMap[$skkItem->id]) && $assessedSkkMap[$skkItem->id]->status)
                                             <span class="badge bg-success">Tercapai</span>

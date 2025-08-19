@@ -76,7 +76,9 @@
                     </div>
 
                     <div class="mb-3">
-                        <button type="button" id="getSkuButton" class="btn btn-primary">Muat Daftar Penilaian</button>
+                        <button type="button" id="getSkuButton" class="btn btn-info" title="Muat Penilaian SKU">
+                            <i class="fas fa-spinner"></i>
+                        </button>
                     </div>
 
                     <div class="mb-3">
@@ -94,7 +96,7 @@
                                 <tr>
                                     <th>No</th>
                                     <th>Deskripsi SKU</th>
-                                    <th>Nilai</th>
+                                    <th>Checklist Penilaian</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -102,8 +104,12 @@
                             </tbody>
                         </table>
                     </div>
-                    <button type="submit" class="btn btn-success mt-3">Simpan</button>
-                    <a href="{{ route('nilai_sku.index') }}" class="btn btn-secondary mt-3">Batal</a>
+                    <button type="submit" class="btn btn-primary mt-3" title="Simpan Penilaian">
+                        <i class="fas fa-save"></i>
+                    </button>
+                    <a href="{{ route('nilai_sku.index') }}" class="btn btn-secondary mt-3" title="Kembali">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
                 </div>
             </form>
         </div>

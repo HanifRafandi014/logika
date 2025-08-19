@@ -34,8 +34,12 @@
                             </div>
                         @enderror
                     </div>
-                    <button type="submit" class="btn btn-success">Simpan</button>
-                    <a href="{{ route('data-besaran-biaya.index') }}" class="btn btn-secondary">Kembali</a>
+                    <button type="submit" class="btn btn-primary" title="Simpan Data">
+                        <i class="fas fa-save"></i>
+                    </button>
+                    <a href="{{ route('data-besaran-biaya.index') }}" class="btn btn-secondary" title="Kembali">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
                 </form>
             </div>
         </div>

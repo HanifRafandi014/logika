@@ -44,7 +44,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="card-title mb-0">Detail Penilaian SKU: {{ $siswa->nama }} ({{ ucfirst($tingkatan) }})</h4>
             <a href="{{ route('nilai_sku.student_assessments', ['siswa_id' => $siswa->id]) }}" class="btn btn-secondary btn-sm" title="Kembali ke Daftar Penilaian SKU Siswa">
-                <i class="fa fa-arrow-left" aria-hidden="true"></i> Kembali
+                <i class="fa fa-arrow-left" aria-hidden="true"></i>
             </a>
         </div>
         <div class="card-body">
@@ -104,7 +104,7 @@
                             @foreach ($allSkuItems as $skuItem)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $skuItem->deskripsi_sku }}</td>
+                                    <td>{{ $skuItem->keterangan_sku }}</td>
                                     <td>
                                         @if (isset($assessedSkuMap[$skuItem->id]) && $assessedSkuMap[$skuItem->id]->status)
                                             <span class="badge bg-success">Tercapai</span>

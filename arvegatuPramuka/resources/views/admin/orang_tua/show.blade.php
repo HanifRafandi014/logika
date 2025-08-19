@@ -96,7 +96,7 @@
       </table>
       </div>
       <a href="{{ route('data-orang-tua.index') }}" class="btn btn-secondary btn-sm" title="Kembali">
-        <i class="fas fa-arrow-left"></i> Kembali
+        <i class="fas fa-arrow-left"></i> 
       </a>
       @else
       <p>Orang tua ini belum terkait dengan data siswa manapun.</p>

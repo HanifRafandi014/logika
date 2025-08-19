@@ -1,46 +1,24 @@
-<head>
-    <title>Data Profil Pembina</title>
-        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .card {
-            margin-top: 50px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .form-label {
-            font-weight: bold;
-        }
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
-        }
-    </style>
-</head>
-
 @extends('layouts.main')
+
 @section('sidebar')
     @include('layouts.sidebar.pembina')
 @endsection
+
 @section('content')
-<div class="col-md-12" style="font-size: 11px;">
-    <div class="row justify-content-center">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                    <h4 style="text-align: center;">Data Profil Pembina</h4>
-                </div>
-            <form method="POST" action="{{ route('pembina.profil.update') }}" style="padding-top: 30px;">
+<div class="col-md-8 offset-md-2">
+    <div class="card">
+        <div class="card-header">
+            <h4>Data Profil Pembina</h4>
+        </div>
+
+        <div class="card-body">
+            <form method="POST" action="{{ route('pembina.profil.update') }}">
                 @csrf
 
+                {{-- Alert error --}}
                 @if ($errors->any())
                     <div class="alert alert-danger">
-                        <ul>
+                        <ul class="mb-0">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -48,33 +26,69 @@
                     </div>
                 @endif
 
+                {{-- Alert success --}}
                 @if(session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}
                     </div>
                 @endif
 
-                <div class="mb-3">
+                <div class="form-group">
                     <label for="nama">Nama</label>
-                    <input type="text" class="form-control" id="nama" name="nama" value="{{ $pembina->nama ?? '' }}">
+                    <input type="text" 
+                           class="form-control @error('nama') is-invalid @enderror" 
+                           id="nama" 
+                           name="nama" 
+                           value="{{ old('nama', $pembina->nama ?? '') }}">
+                    @error('nama')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
-                <div class="mb-3">
+
+                <div class="form-group">
                     <label for="kelas">Kelas</label>
-                    <input type="text" class="form-control" id="kelas" name="kelas" value="{{ $pembina->kelas ?? '' }}">
+                    <input type="text" 
+                           class="form-control @error('kelas') is-invalid @enderror" 
+                           id="kelas" 
+                           name="kelas" 
+                           value="{{ old('kelas', $pembina->kelas ?? '') }}">
+                    @error('kelas')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
-                <div class="mb-3">
+
+                <div class="form-group">
                     <label for="kategori">Kategori</label>
-                    <input type="text" class="form-control" id="kategori" name="kategori" value="{{ $pembina->kategori ?? '' }}">
+                    <input type="text" 
+                           class="form-control @error('kategori') is-invalid @enderror" 
+                           id="kategori" 
+                           name="kategori" 
+                           value="{{ old('kategori', $pembina->kategori ?? '') }}">
+                    @error('kategori')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
-                <div class="mb-3">
+
+                <div class="form-group">
                     <label for="nip">NIP</label>
-                    <input type="text" class="form-control" id="nip" name="nip" value="{{ $pembina->nip ?? '' }}">
+                    <input type="text" 
+                           class="form-control @error('nip') is-invalid @enderror" 
+                           id="nip" 
+                           name="nip" 
+                           value="{{ old('nip', $pembina->nip ?? '') }}">
+                    @error('nip')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
+
                 <button type="submit" class="btn btn-primary" title="Simpan">
-                    <i class="fa fa-bookmark" aria-hidden="true"></i>
+                    <i class="fas fa-save"></i>
                 </button>
+                <a href="{{ route('pembina.dashboard') }}" class="btn btn-secondary" title="Kembali">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
             </form>
         </div>
-    </div>    
+    </div>
 </div>
 @endsection

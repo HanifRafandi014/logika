@@ -57,7 +57,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="card-title mb-0">Daftar Penilaian SKU untuk {{ $siswa->nama }}</h4>
             <a href="{{ route('nilai_sku.index') }}" class="btn btn-secondary btn-sm" title="Kembali ke Daftar Siswa">
-                <i class="fa fa-arrow-left" aria-hidden="true"></i> Kembali
+                <i class="fa fa-arrow-left" aria-hidden="true"></i>
             </a>
         </div>
         <div class="card-body">

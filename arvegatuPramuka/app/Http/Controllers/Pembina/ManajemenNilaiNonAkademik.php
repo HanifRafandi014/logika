@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\NilaiNonAkademik;
 use App\Models\Siswa;
+use App\Models\Pembina;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -29,55 +30,74 @@ class ManajemenNilaiNonAkademik extends Controller
         $pembina = Auth::user()->pembina;
         $selectedCategory = $request->query('kategori');
 
-        $siswas = Siswa::all();
+        // Ambil kategori & kelas pembina
+        $pembinaCategory = $pembina->kategori;
+        $pembinaClass = $pembina->kelas; // Pastikan field 'kelas' ada di tabel pembinas
 
+        // Ambil siswa sesuai kelas pembina jika ada
+        $siswas = Siswa::query();
+        if (!empty($pembinaClass)) {
+            $siswas->where('kelas', $pembinaClass);
+        }
+        $siswas = $siswas->get();
+
+        // Ambil nilai yang sudah ada
         $existingScoresMap = collect();
         if ($selectedCategory) {
             $existingScoresMap = NilaiNonAkademik::where('pembina_id', $pembina->id)
-                                                 ->where('kategori', $selectedCategory)
-                                                 ->get()
-                                                 ->keyBy('siswa_id');
+                ->where('kategori', $selectedCategory)
+                ->get()
+                ->keyBy('siswa_id');
         }
 
-        return view('pembina.nilai_non_akademik.index', compact('siswas', 'pembina', 'selectedCategory', 'existingScoresMap'))->with('categories', $this->categories);
+        return view('pembina.nilai_non_akademik.index', [
+            'siswas' => $siswas,
+            'pembina' => $pembina,
+            'selectedCategory' => $selectedCategory,
+            'existingScoresMap' => $existingScoresMap,
+            'categories' => $this->categories, // daftar kategori lomba / kegiatan
+            'pembinaCategory' => $pembinaCategory
+        ]);
     }
 
     public function create(Request $request)
     {
-        $pembina = Auth::user()->pembina;
-        $siswas = Siswa::all();
-        $selectedCategory = $request->query('kategori');
+        $user = Auth::user();
+        $pembina = $user->pembina;
 
-        if (empty($selectedCategory)) {
-            return redirect()->route('nilai_non_akademik.index')->with('error', 'Pilih kategori terlebih dahulu.');
+        // Ambil kategori dari request atau session
+        $selectedCategory = $request->kategori;
+
+        // Jika pembina kategori "Pembina Pramuka", maka hanya bisa input untuk kategori itu
+        if ($pembina->kategori === 'Pembina Pramuka') {
+            $selectedCategory = 'Pembina Pramuka';
         }
 
-        // Ambil nilai yang sudah ada di database untuk kategori dan pembina ini
-        $existingScores = NilaiNonAkademik::where('pembina_id', $pembina->id)
-                                        ->where('kategori', $selectedCategory)
-                                        ->get()
-                                        ->keyBy('siswa_id');
+        // Filter siswa sesuai kelas pembina
+        $query = Siswa::query();
+        if (!empty($pembina->kelas)) {
+            $query->where('kelas', $pembina->kelas);
+        }
 
-        // Cari tanggal import terakhir dari updated_at
-        $lastUpdated = NilaiNonAkademik::where('pembina_id', $pembina->id)
-                                        ->where('kategori', $selectedCategory)
-                                        ->max('updated_at');
+        // Ambil siswa dengan nilai terakhir (jika ada)
+        $siswasWithScores = $query
+            ->leftJoin('nilai_non_akademiks', function ($join) use ($selectedCategory) {
+                $join->on('siswas.id', '=', 'nilai_non_akademiks.siswa_id')
+                    ->where('nilai_non_akademiks.kategori', '=', $selectedCategory);
+            })
+            ->select('siswas.*', 'nilai_non_akademiks.nilai')
+            ->orderBy('siswas.nama', 'asc')
+            ->get();
 
-        // Map siswa dengan nilai yang sudah ada
-        $siswasWithScores = $siswas->map(function($siswa) use ($existingScores) {
-            $siswaData = $siswa->toArray();
-            $existingScore = $existingScores->get($siswa->id);
-            if ($existingScore) {
-                $siswaData['nilai'] = $existingScore->nilai; // Ambil nilai
-            } else {
-                $siswaData['nilai'] = null;
-            }
-            return (object) $siswaData;
-        });
+        // Cek kapan terakhir import untuk kategori ini
+        $lastUpdated = DB::table('nilai_non_akademiks')
+            ->where('kategori', $selectedCategory)
+            ->max('updated_at');
 
-        // Kirim juga variabel lastUpdated ke view
         return view('pembina.nilai_non_akademik.create', compact(
-            'siswasWithScores', 'pembina', 'selectedCategory', 'lastUpdated'
+            'siswasWithScores',
+            'selectedCategory',
+            'lastUpdated'
         ));
     }
 

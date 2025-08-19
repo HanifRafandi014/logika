@@ -21,21 +21,20 @@ class PenilaianSkuController extends Controller
             if (!$pembina) {
                 return redirect()->route('dashboard')->with('error', 'Data pembina Anda tidak ditemukan.');
             }
-            // $pembinaId = $pembina->id; // Not directly used in this index anymore
 
-            // Fetch all students with their last assigned pembina (if any assessment exists by any pembina)
+            // Filter siswa hanya berdasarkan kelas pembina yang login
             $siswasWithPembinaInfo = Siswa::leftJoin('penilaian_skus', 'siswas.id', '=', 'penilaian_skus.siswa_id')
-                                            ->leftJoin('pembinas', 'penilaian_skus.pembina_id', '=', 'pembinas.id')
-                                            ->select(
-                                                'siswas.id as siswa_id',
-                                                'siswas.nama as siswa_nama',
-                                                'siswas.nisn',
-                                                'siswas.kelas',
-                                                // Get the name of the pembina who made the latest assessment, if any
-                                                DB::raw('MAX(CASE WHEN penilaian_skus.pembina_id IS NOT NULL THEN pembinas.nama ELSE NULL END) as last_pembina_name')
-                                            )
-                                            ->groupBy('siswas.id', 'siswas.nama', 'siswas.nisn', 'siswas.kelas')
-                                            ->get();
+                ->leftJoin('pembinas', 'penilaian_skus.pembina_id', '=', 'pembinas.id')
+                ->select(
+                    'siswas.id as siswa_id',
+                    'siswas.nama as siswa_nama',
+                    'siswas.nisn',
+                    'siswas.kelas',
+                    DB::raw('MAX(CASE WHEN penilaian_skus.pembina_id IS NOT NULL THEN pembinas.nama ELSE NULL END) as last_pembina_name')
+                )
+                ->where('siswas.kelas', $pembina->kelas) // <- filter di sini
+                ->groupBy('siswas.id', 'siswas.nama', 'siswas.nisn', 'siswas.kelas')
+                ->get();
 
             return view('pembina.nilai_sku.index', compact('siswasWithPembinaInfo'));
 

@@ -101,8 +101,12 @@
                     @enderror
                 </div>
 
-                <button type="submit" class="btn btn-primary">Update</button>
-                <a href="{{ route('manajemen_skk.index') }}" class="btn btn-secondary">Batal</a>
+                <button type="submit" class="btn btn-primary" title="Update">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <a href="{{ route('manajemen_skk.index') }}" class="btn btn-secondary" title="Kembali">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
             </form>
         </div>
     </div>

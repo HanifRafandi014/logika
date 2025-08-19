@@ -103,10 +103,14 @@
                 </div>
 
                 {{-- Moved buttons here, above the table --}}
-                <div class="mb-3 d-flex justify-content-start">
-                    <button type="submit" class="btn btn-primary me-2">Perbarui Nilai</button>
+                <div class="mb-3 d-flex justify-content-start" style="padding-top: 2%;">
+                    <button type="submit" class="btn btn-primary me-2" title="Update Nilai">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                     {{-- Make sure the 'Batal' button goes back to the correct category index page --}}
-                    <a href="{{ route('nilai_non_akademik.index', ['kategori' => $selectedCategory]) }}" class="btn btn-secondary">Batal</a>
+                    <a href="{{ route('nilai_non_akademik.index', ['kategori' => $selectedCategory]) }}" class="btn btn-secondary" title="Batal">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
                 </div>
 
                 <div class="table-responsive">

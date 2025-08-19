@@ -33,7 +33,7 @@
             <h4 class="card-title">Daftar Nilai Akademik Siswa</h4>
             <div class="d-flex ms-auto">
               <a href="{{ route('lihat_nilai.export_nilai_akademik') }}" class="btn btn-success btn-sm" title="Export Data">
-                  <i class="fas fa-file-excel"></i> Export
+                  <i class="fas fa-file-excel"></i>
               </a>
             </div>
         </div> 

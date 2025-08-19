@@ -93,8 +93,8 @@
                     <a href="{{ route('nilai_non_akademik.create', ['kategori' => $selectedCategory]) }}" class="btn btn-sm btn-secondary">
                         <i class="fas fa-arrow-left"></i> Kembali
                     </a>
-                    <button type="submit" class="btn btn-sm btn-info">
-                        <i class="fas fa-upload"></i> Import Excel
+                    <button type="submit" class="btn btn-sm btn-success" title="Import Excel">
+                        <i class="fas fa-upload"></i> 
                     </button>
                 </form>
             </div>

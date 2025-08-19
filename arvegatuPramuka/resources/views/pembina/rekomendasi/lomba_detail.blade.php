@@ -84,7 +84,9 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
             {{-- Tombol Kembali --}}
             <div>
-                <a href="{{ route('pembina.rekomendasi.index') }}" class="back-button">← Kembali ke Daftar Lomba</a>
+                <a href="{{ route('pembina.rekomendasi.index') }}" class="back-button" title="Kembali">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
             </div>
 
             {{-- Status Terakhir Disimpan --}}
@@ -106,7 +108,9 @@
                     @foreach ($rekomendasi as $rec)
                         <input type="hidden" name="rekomendasi[]" value="{{ json_encode($rec) }}">
                     @endforeach
-                    <button type="submit" class="btn-success">💾 Simpan Rekomendasi</button>
+                    <button type="submit" class="btn btn-primary me-2" title="Simpan Rekomendasi">
+                        <i class="fas fa-save"></i>
+                    </button>
                 </form>
             </div>
         </div>
@@ -117,15 +121,26 @@
                 <tr>
                     <th>ID Siswa</th>
                     <th>Nama Siswa</th>
+                    <th>Jenis Kelamin</th>
                     <th>Kategori Cluster</th>
                     <th>Rata-rata Skor Lomba</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($rekomendasi as $rec)
+                    @php
+                        $siswa = \App\Models\Siswa::where('nama', $rec['Nama Siswa'])->first();
+                    @endphp
                     <tr>
                         <td>{{ $rec['ID Siswa'] }}</td>
                         <td>{{ $rec['Nama Siswa'] }}</td>
+                        <td>
+                      @if ($siswa?->jenis_kelamin == 1)
+                          Laki-laki
+                      @else
+                          Perempuan
+                      @endif
+                  </td>
                         <td>{{ $rec['Kategori Cluster'] }}</td>
                         <td>{{ number_format($rec['Rata-rata Skor Lomba'], 2) }}</td>
                     </tr>

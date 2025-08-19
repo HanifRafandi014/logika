@@ -34,7 +34,7 @@
             <div class="d-flex ms-auto">
               {{-- Tombol baru untuk Export Data --}}
               <a href="{{ route('lihat_nilai.export_nilai_non_akademik') }}" class="btn btn-success btn-sm" title="Export Data">
-                  <i class="fas fa-file-excel"></i> Export
+                  <i class="fas fa-file-excel"></i> 
               </a>
             </div>
         </div> 

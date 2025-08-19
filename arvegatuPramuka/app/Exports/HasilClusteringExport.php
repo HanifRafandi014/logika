@@ -16,8 +16,8 @@ class HasilClusteringExport implements FromCollection, WithHeadings, WithMapping
     */
     public function collection()
     {
-        // Mengambil data yang diperlukan dari model HasilClustering
-        return HasilClustering::select('nama_siswa', 'kategori_lomba', 'rata_rata_skor')->get();
+        // Ambil data hasil clustering beserta relasi siswa
+        return HasilClustering::with('siswa')->get();
     }
 
     /**
@@ -25,7 +25,6 @@ class HasilClusteringExport implements FromCollection, WithHeadings, WithMapping
      */
     public function headings(): array
     {
-        // Mendefinisikan header untuk kolom-kolom di Excel
         return [
             'No',
             'Nama Siswa',
@@ -41,14 +40,13 @@ class HasilClusteringExport implements FromCollection, WithHeadings, WithMapping
      */
     public function map($row): array
     {
-        $this->no++; // Increment nomor urut untuk setiap baris
-        // Memetakan data dari setiap baris ke format yang diinginkan untuk ekspor
+        $this->no++;
+
         return [
             $this->no,
-            $row->nama_siswa,
+            optional($row->siswa)->nama ?? '-', // pakai optional() biar aman kalau null
             $row->kategori_lomba,
             $row->rata_rata_skor,
         ];
     }
 }
-

@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, davies_bouldin_score
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -20,36 +21,34 @@ class StudentRecommender:
         self.lomba_to_cluster_map = {}
         self.k_final = 0
         self._all_generated_recommendations_df = None
+        self._versatile_students_df = None
+        self._final_versatile_assignments_df = None
+        self._final_lomba_status_df = None
+        self._lomba_rankings_dfs = {}
+        self.silhouette_score = None
+        self.db_index = None
 
     def load_and_preprocess_data(self):
         if self.df_main is None or self.df_main.empty:
             raise ValueError("Data siswa kosong atau tidak tersedia.")
 
-        # Ambil semua variabel dari semua lomba
         self.all_features = sorted(
             list(set(var for comp in self.competitions_data for var in comp['Variabel yang Digunakan']))
         )
-
-        # Hanya pakai variabel yang ada di data siswa
         self.all_features = [f for f in self.all_features if f in self.df_main.columns]
-
         if not self.all_features:
             raise ValueError("Tidak ada fitur yang cocok antara data siswa dan konfigurasi lomba.")
-
         df_clustering_data = self.df_main[self.all_features].copy()
+        df_clustering_data = df_clustering_data.fillna(df_clustering_data.mean(numeric_only=True))
 
-        # Isi nilai kosong dengan rata-rata kolom
-        df_clustering_data = df_clustering_data.fillna(df_clustering_data.mean())
-
-        # Normalisasi
         self.scaler = StandardScaler()
         normalized_data = self.scaler.fit_transform(df_clustering_data)
         self.df_normalized = pd.DataFrame(normalized_data, columns=self.all_features)
 
-        # PCA
+        # PCA hanya jika dimensi mencukupi
         n_components_pca = min(2, self.df_normalized.shape[1], self.df_normalized.shape[0] - 1)
         if n_components_pca < 1:
-            self.df_pca = self.df_normalized
+            self.df_pca = self.df_normalized.copy()
         else:
             self.pca = PCA(n_components=n_components_pca)
             self.df_pca = self.pca.fit_transform(self.df_normalized)
@@ -63,7 +62,6 @@ class StudentRecommender:
         self.kmeans_model = KMeans(n_clusters=self.k_final, random_state=42, n_init=10)
         self.df_main['Cluster'] = self.kmeans_model.fit_predict(self.df_pca)
 
-        # Pemetaan cluster ke lomba
         self.cluster_to_lomba_map = {}
         self.lomba_to_cluster_map = {}
         for i in range(self.k_final):
@@ -76,6 +74,49 @@ class StudentRecommender:
 
         self.df_main['Kategori Cluster'] = self.df_main['Cluster'].map(self.cluster_to_lomba_map)
 
+        # Hitung Silhouette Score & DB Index
+        if self.df_pca.shape[0] > self.k_final:
+            self.silhouette_score = round(silhouette_score(self.df_pca, self.df_main['Cluster']), 4)
+            self.db_index = round(davies_bouldin_score(self.df_pca, self.df_main['Cluster']), 4)
+
+    def get_clustering_metrics(self):
+        return {
+            'silhouette_score': self.silhouette_score,
+            'davies_bouldin_index': self.db_index
+        }
+
+    def get_cluster_mapping(self):
+        return self.cluster_to_lomba_map.copy()
+
+    def get_lomba_status(self):
+        return self._final_lomba_status_df.copy() if self._final_lomba_status_df is not None else pd.DataFrame()
+
+    def get_all_recommendations(self):
+        return self._all_generated_recommendations_df.copy() if self._all_generated_recommendations_df is not None else pd.DataFrame()
+
+    def get_lomba_rankings(self):
+        df = self._all_generated_recommendations_df.copy()
+
+        if df.empty:
+            return []
+
+        result = []
+
+        for lomba in df['Lomba Rekomendasi'].unique():
+            sub_df = df[df['Lomba Rekomendasi'] == lomba].copy()
+            sub_df = sub_df.sort_values(by='Rata-rata Skor Lomba', ascending=False)
+            sub_df['Peringkat'] = range(1, len(sub_df) + 1)
+
+            for _, row in sub_df.iterrows():
+                result.append({
+                    'nama_siswa': row['Nama Siswa'],
+                    'lomba': lomba,
+                    'peringkat': int(row['Peringkat']),
+                    'skor': round(row['Rata-rata Skor Lomba'], 2)
+                })
+
+        return result
+
     def generate_recommendations(self):
         if self.df_main is None or self.kmeans_model is None:
             raise Exception("Clustering belum dilakukan.")
@@ -87,7 +128,6 @@ class StudentRecommender:
         students_assigned_ids = set()
         lomba_current_fill_count = {comp['Lomba']: 0 for comp in self.competitions_data}
 
-        # === FASE 1: berdasarkan cluster ===
         for comp in self.competitions_data:
             lomba_name = comp['Lomba']
             required_vars = [v for v in comp['Variabel yang Digunakan'] if v in self.df_main.columns]
@@ -123,8 +163,7 @@ class StudentRecommender:
                     students_assigned_ids.add(row['ID Siswa'])
                     lomba_current_fill_count[lomba_name] += 1
 
-        # === FASE 2: isi kekurangan dengan siswa sisa ===
-        for _ in range(10):  # max 10 iterasi
+        for _ in range(10):
             df_unassigned = self.df_main[~self.df_main['ID Siswa'].isin(students_assigned_ids)].copy()
             if df_unassigned.empty:
                 break
@@ -161,7 +200,21 @@ class StudentRecommender:
 
         self._all_generated_recommendations_df = pd.DataFrame(all_recommendations_list).sort_values(
             by=['Lomba Rekomendasi', 'Rata-rata Skor Lomba'], ascending=[True, False]
-        )
+        ).reset_index(drop=True)
+
+        final_lomba_status = []
+        for comp in self.competitions_data:
+            lomba_name = comp['Lomba']
+            required = comp['Jumlah Siswa yang Dibutuhkan']
+            current = lomba_current_fill_count[lomba_name]
+            status = "Terpenuhi" if current >= required else "Belum Terpenuhi"
+            final_lomba_status.append({
+                'Lomba': lomba_name,
+                'Kebutuhan': required,
+                'Terisi': current,
+                'Status': status
+            })
+        self._final_lomba_status_df = pd.DataFrame(final_lomba_status)
 
         return self._all_generated_recommendations_df.copy()
 
@@ -205,6 +258,8 @@ class StudentRecommender:
             self.generate_versatile_students(threshold=threshold)
 
         df_result = []
+        self._lomba_rankings_dfs = {}
+
         for comp in self.competitions_data:
             lomba = comp['Lomba']
             required_vars = [v for v in comp['Variabel yang Digunakan'] if v in self.df_main.columns]
@@ -215,6 +270,9 @@ class StudentRecommender:
             df_candidates = self.df_main[self.df_main['ID Siswa'].isin(self._versatile_students_df['ID Siswa'])].copy()
             df_candidates['Skor'] = df_candidates[required_vars].mean(axis=1)
             df_candidates = df_candidates[df_candidates['Skor'] > threshold].sort_values(by='Skor', ascending=False)
+            df_candidates['Ranking'] = df_candidates['Skor'].rank(method='min', ascending=False).astype(int)
+
+            self._lomba_rankings_dfs[lomba] = df_candidates[['ID Siswa', 'Nama Siswa', 'Skor', 'Ranking']].copy()
             df_selected = df_candidates.head(required)
             df_selected = df_selected[['ID Siswa', 'Nama Siswa', 'Skor']].copy()
             df_selected['Lomba Rekomendasi'] = lomba
@@ -223,9 +281,3 @@ class StudentRecommender:
 
         self._final_versatile_assignments_df = pd.concat(df_result, ignore_index=True)
         return self._final_versatile_assignments_df.copy()
-    
-    def get_required_student_count(self, lomba_name):
-        for comp in self.competitions_data:
-            if comp['Lomba'].strip().lower() == lomba_name.strip().lower():
-                return comp['Jumlah Siswa yang Dibutuhkan']
-        return 0

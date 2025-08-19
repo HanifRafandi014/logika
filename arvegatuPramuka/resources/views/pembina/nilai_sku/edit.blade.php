@@ -94,7 +94,7 @@
                                 <tr>
                                     <th>No</th>
                                     <th>Keterangan</th>
-                                    <th>Nilai</th>
+                                    <th>Checklist Penilaian</th>
                                     {{-- REMOVED: Column for Bukti PDF per item --}}
                                 </tr>
                             </thead>
@@ -103,8 +103,12 @@
                             </tbody>
                         </table>
                     </div>
-                    <button type="submit" class="btn btn-success mt-3">Update Penilaian SKU</button>
-                    <a href="{{ route('nilai_sku.index') }}" class="btn btn-secondary mt-3">Batal</a>
+                    <button type="submit" class="btn btn-primary mt-3" title="Update Penilaian SKU">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <a href="{{ route('nilai_sku.index') }}" class="btn btn-secondary mt-3" title="Kembali">
+                        <i class="fa fa-arrow-left"></i>
+                    </a>
                 </div>
             </form>
         </div>

@@ -85,10 +85,10 @@
                     <i class="fas fa-download"></i> Export Data
                 </a> --}}
                 <a href="{{ route('data-pembina.create') }}" class="btn btn-primary btn-sm me-2" title="Tambah Pembina">
-                    <i class="fa fa-plus-square" aria-hidden="true"></i> Tambah
+                    <i class="fa fa-plus-square" aria-hidden="true"></i> 
                 </a>
                 <a href="{{ route('admin.pembina.import-form-pembina') }}" class="btn btn-success btn-sm" title="Import Data">
-                    <i class="fas fa-file-excel"></i> Import
+                    <i class="fas fa-file-excel"></i> 
                 </a>
             </div>    
         </div>    

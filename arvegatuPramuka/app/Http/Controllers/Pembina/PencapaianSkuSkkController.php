@@ -8,6 +8,7 @@ use App\Models\PenilaianSku;
 use App\Models\Siswa;
 use App\Models\ManajemenSku;
 use App\Exports\PencapaianSkuExport;
+use Illuminate\Support\Facades\Auth;
 use App\Models\PenilaianSkk;
 use App\Models\ManajemenSkk;
 use App\Exports\PencapaianSkkExport;
@@ -17,15 +18,24 @@ class PencapaianSkuSkkController extends Controller
 {
     public function index()
     {
-        // Daftar tingkatan SKU dari tertinggi ke terendah
+        if (!Auth::check() || Auth::user()->role !== 'pembina') {
+            return redirect()->route('login')->with('error', 'Anda harus login sebagai pembina.');
+        }
+
+        $pembina = Auth::user()->pembina;
+        if (!$pembina) {
+            return redirect()->route('dashboard')->with('error', 'Data pembina Anda tidak ditemukan.');
+        }
+
+        $siswas = Siswa::with('pembina')
+            ->where('kelas', $pembina->kelas)
+            ->get();
+
         $tingkatanOrder = ['Terap', 'Rakit', 'Ramu'];
-
-        $siswas = Siswa::with('pembina')->get();
-
-        $pencapaianFinal = []; // Array untuk menyimpan hasil akhir yang sudah difilter
+        $pencapaianFinal = [];
 
         foreach ($siswas as $siswa) {
-            $siswaPencapaianSku = []; // Menyimpan status kelulusan SKU per tingkatan untuk siswa ini
+            $siswaPencapaianSku = [];
 
             foreach ($tingkatanOrder as $tingkatan) {
                 $penilaianItems = PenilaianSku::where('siswa_id', $siswa->id)
@@ -33,14 +43,10 @@ class PencapaianSkuSkkController extends Controller
                     ->get();
 
                 $jumlah_dinilai = $penilaianItems->where('status', 1)->count();
-
-                // Hitung jumlah item SKU untuk tingkatan ini
                 $total_item = ManajemenSku::where('tingkatan', $tingkatan)->count();
 
-                // Tentukan status kelulusan untuk tingkatan ini
                 $statusLulus = ($jumlah_dinilai >= $total_item && $total_item > 0) ? 'Lulus' : 'Belum Lulus';
 
-                // Simpan detail jika siswa lulus tingkatan ini
                 if ($statusLulus === 'Lulus') {
                     $siswaPencapaianSku[$tingkatan] = [
                         'nama' => $siswa->nama,
@@ -48,21 +54,19 @@ class PencapaianSkuSkkController extends Controller
                         'nisn' => $siswa->nisn,
                         'tingkatan' => $tingkatan,
                         'status' => $statusLulus,
-                        'tanggal' => $penilaianItems->max('tanggal') ?? '-', // Ambil tanggal terbaru
+                        'tanggal' => $penilaianItems->max('tanggal') ?? '-',
                     ];
                 }
             }
 
-            // Setelah mengecek semua tingkatan untuk siswa ini, tentukan tingkatan tertinggi yang lulus
             $highestLulusTingkatan = null;
             foreach ($tingkatanOrder as $tingkatan) {
                 if (isset($siswaPencapaianSku[$tingkatan])) {
                     $highestLulusTingkatan = $siswaPencapaianSku[$tingkatan];
-                    break; // Ambil tingkatan tertinggi yang lulus dan keluar dari loop
+                    break;
                 }
             }
 
-            // Jika ada tingkatan SKU yang lulus, tambahkan ke daftar akhir
             if ($highestLulusTingkatan) {
                 $pencapaianFinal[] = $highestLulusTingkatan;
             }
@@ -73,22 +77,33 @@ class PencapaianSkuSkkController extends Controller
 
     public function export()
     {
-        return Excel::download(new PencapaianSkuExport, 'pencapaian_sku.xlsx');
+        $pembina = Auth::user()->pembina;
+        return Excel::download(new PencapaianSkuExport($pembina->kelas), 'pencapaian_sku.xlsx');
     }
 
     public function skkIndex()
     {
-        // Daftar tingkatan SKK dari tertinggi ke terendah
-        $tingkatanOrder = ['Utama', 'Madya', 'Purwa'];
-        // Ambil semua jenis SKK yang unik dari tabel ManajemenSkk
-        $jenisList = ManajemenSkk::select('jenis_skk')->distinct()->pluck('jenis_skk');
-        $siswas = Siswa::with('pembina')->get();
+        if (!Auth::check() || Auth::user()->role !== 'pembina') {
+            return redirect()->route('login')->with('error', 'Anda harus login sebagai pembina.');
+        }
 
-        $pencapaianFinal = []; // Array untuk menyimpan hasil akhir yang sudah difilter
+        $pembina = Auth::user()->pembina;
+        if (!$pembina) {
+            return redirect()->route('dashboard')->with('error', 'Data pembina Anda tidak ditemukan.');
+        }
+
+        $siswas = Siswa::with('pembina')
+            ->where('kelas', $pembina->kelas)
+            ->get();
+
+        $tingkatanOrder = ['Utama', 'Madya', 'Purwa'];
+        $jenisList = ManajemenSkk::select('jenis_skk')->distinct()->pluck('jenis_skk');
+
+        $pencapaianFinal = [];
 
         foreach ($siswas as $siswa) {
             foreach ($jenisList as $jenis) {
-                $highestLulusTingkatanForJenis = null; // Untuk menyimpan tingkatan tertinggi yang lulus per jenis SKK
+                $highestLulusTingkatanForJenis = null;
 
                 foreach ($tingkatanOrder as $tingkatan) {
                     $penilaianItems = PenilaianSkk::where('siswa_id', $siswa->id)
@@ -97,14 +112,12 @@ class PencapaianSkuSkkController extends Controller
                         ->get();
 
                     $jumlah_dinilai = $penilaianItems->where('status', 1)->count();
-
                     $total_item = ManajemenSkk::where('tingkatan', $tingkatan)
                         ->where('jenis_skk', $jenis)
                         ->count();
 
                     $statusLulus = ($jumlah_dinilai >= $total_item && $total_item > 0) ? 'Lulus' : 'Belum Lulus';
 
-                    // Jika siswa lulus tingkatan ini untuk jenis SKK ini, simpan dan break
                     if ($statusLulus === 'Lulus') {
                         $highestLulusTingkatanForJenis = [
                             'nama' => $siswa->nama,
@@ -115,10 +128,10 @@ class PencapaianSkuSkkController extends Controller
                             'status' => $statusLulus,
                             'tanggal' => $penilaianItems->max('tanggal') ?? '-',
                         ];
-                        break; // Keluar dari loop tingkatan karena sudah menemukan yang tertinggi yang lulus
+                        break;
                     }
                 }
-                // Jika ada tingkatan yang lulus untuk jenis SKK ini, tambahkan ke array final
+
                 if ($highestLulusTingkatanForJenis) {
                     $pencapaianFinal[] = $highestLulusTingkatanForJenis;
                 }
@@ -130,6 +143,7 @@ class PencapaianSkuSkkController extends Controller
 
     public function skkExport()
     {
-        return Excel::download(new PencapaianSkkExport, 'pencapaian_skk.xlsx');
+        $pembina = Auth::user()->pembina;
+        return Excel::download(new PencapaianSkkExport($pembina->kelas), 'pencapaian_skk.xlsx');
     }
 }

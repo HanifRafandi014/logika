@@ -48,8 +48,12 @@
               <option value="0">Tidak</option>
             </select>
           </div>
-        <button type="submit" class="btn btn-success">Simpan</button>
-        <a href="{{ route('data-guru.index') }}" class="btn btn-secondary">Batal</a>
+        <button type="submit" class="btn btn-primary" title="Simpan Data">
+          <i class="fas fa-save"></i>
+        </button>
+        <a href="{{ route('data-guru.index') }}" class="btn btn-secondary" title="Kembali">
+          <i class="fas fa-arrow-left"></i>
+        </a>
       </form>
     </div>
   </div>

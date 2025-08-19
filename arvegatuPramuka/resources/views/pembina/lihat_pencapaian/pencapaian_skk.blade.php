@@ -11,7 +11,7 @@
             <h4 class="card-title mb-0">Pencapaian SKK</h4>
             <div class="d-flex ms-auto">
                 <a href="{{ route('pencapaian-skk.export') }}" class="btn btn-success btn-sm" title="Export Data">
-                    <i class="fas fa-file-excel"></i> Export
+                    <i class="fas fa-file-excel"></i>
                 </a>
             </div>
         </div>

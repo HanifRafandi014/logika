@@ -125,14 +125,14 @@
 @extends('layouts.main')
 
 @section('sidebar')
-    @include('layouts.sidebar.pembina')
+    @include('layouts.sidebar.guru')
 @endsection
 
 @section('content')
 <div class="col-md-12">
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="card-title mb-0">Data Nilai Non Akademik Siswa</h4>
+        <h4 class="card-title mb-0">Data Nilai Akademik Siswa</h4>
       </div>
       <div class="card-body">
         {{-- Category Filter Dropdown (Styled to match "Filter Bulan") --}}
@@ -141,11 +141,14 @@
             <select id="categoryFilter" class="form-control">
                 <option value="">Pilih Mata Pelajaran</option>
                 @foreach ($categories as $category)
-                    <option value="{{ $category }}" {{ $selectedCategory == $category ? 'selected' : '' }}>
+                    <option value="{{ $category }}"
+                            {{ $selectedCategory == $category ? 'selected' : '' }}
+                            @if ($guruSubject !== $category) disabled @endif>
                         {{ $category }}
                     </option>
                 @endforeach
             </select>
+
         </div>
 
         <div class="table-responsive">
@@ -186,7 +189,7 @@
                             </a>
 
                             {{-- Edit button (Active only if category selected AND score exists) --}}
-                            <a href="{{ $hasScore ? route('nilai_non_akademik.edit', $nilaiAkademik->id) : '#' }}"
+                            <a href="{{ $hasScore ? route('nilai_akademik.edit', $nilaiAkademik->id) : '#' }}"
                                class="btn btn-sm btn-warning"
                                title="{{ $selectedCategory ? ($hasScore ? 'Edit Nilai' : 'Belum ada nilai untuk mata pelajaran ini') : 'Pilih kategori terlebih dahulu untuk mengedit nilai' }}"
                                @if (!$selectedCategory || !$hasScore) disabled @endif>

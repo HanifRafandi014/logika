@@ -44,8 +44,12 @@
                     @endforeach
                 </div>
 
-                <button type="submit" class="btn btn-primary">Perbarui</button>
-                <a href="{{ route('data-variabel.index') }}" class="btn btn-secondary">Kembali</a>
+                <button type="submit" class="btn btn-primary" title="Update">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <a href="{{ route('data-variabel.index') }}" class="btn btn-secondary" title="Kembali">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
             </form>
         </div>
     </div>

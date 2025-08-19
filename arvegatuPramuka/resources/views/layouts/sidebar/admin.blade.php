@@ -104,7 +104,7 @@
         <li class="nav-item">
             <a class="nav-link collapsed" data-bs-toggle="collapse" href="#variabelMenu" aria-expanded="false" aria-controls="variabelMenu">
                 <i class="fas fa-layer-group"></i>
-                <span>Variabel Kompetensi</span>
+                <span>Variabel Clustering</span>
                 <span class="caret"></span> </a>
             <div class="collapse" id="variabelMenu">
                 <ul class="nav nav-collapse">
