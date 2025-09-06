@@ -11,15 +11,15 @@
         font-size: 14px;
         transition: all 0.3s ease;
       }
-  
+
       .column-search:focus {
         border-color: #66afe9;
         outline: none;
         box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
       }
     </style>
-  </head>
-  
+</head>
+
 @extends('layouts.main')
 
 @section('sidebar')
@@ -66,32 +66,21 @@
                     </thead>
                     <tbody>
                         @foreach ($lombas as $index => $lomba)
+                            @php
+                                $akademik = is_array($lomba->variabel?->variabel_akademiks)
+                                    ? $lomba->variabel->variabel_akademiks
+                                    : (json_decode($lomba->variabel->variabel_akademiks ?? '[]', true) ?? []);
+
+                                $nonAkademik = is_array($lomba->variabel?->variabel_non_akademiks)
+                                    ? $lomba->variabel->variabel_non_akademiks
+                                    : (json_decode($lomba->variabel->variabel_non_akademiks ?? '[]', true) ?? []);
+                            @endphp
                             <tr>
                                 <td>{{ $index + 1 }}</td>
                                 <td>{{ $lomba->variabel->jenis_lomba ?? '-' }}</td>
                                 <td>{{ $lomba->jumlah_siswa }}</td>
-                                <td>
-                                    @if (!empty($lomba->variabel?->variabel_akademiks))
-                                        <ul class="mb-0">
-                                            @foreach ($lomba->variabel->variabel_akademiks as $ak)
-                                                <li>{{ $ak }}</li>
-                                            @endforeach
-                                        </ul>
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td>
-                                    @if (!empty($lomba->variabel?->variabel_non_akademiks))
-                                        <ul class="mb-0">
-                                            @foreach ($lomba->variabel->variabel_non_akademiks as $nak)
-                                                <li>{{ $nak }}</li>
-                                            @endforeach
-                                        </ul>
-                                    @else
-                                        -
-                                    @endif
-                                </td>
+                                <td>{{ !empty($akademik) ? implode(', ', $akademik) : '-' }}</td>
+                                <td>{{ !empty($nonAkademik) ? implode(', ', $nonAkademik) : '-' }}</td>
                                 <td>
                                     @if ($lomba->status)
                                         <span class="badge bg-success">Aktif</span>

@@ -20,8 +20,13 @@
                 </div>
 
                 @php
-                    $selectedAkademik = $variabel->variabel_akademiks ?? [];
-                    $selectedNonAkademik = $variabel->variabel_non_akademiks ?? [];
+                    $selectedAkademik = is_array($variabel->variabel_akademiks)
+                        ? $variabel->variabel_akademiks
+                        : (json_decode($variabel->variabel_akademiks, true) ?? []);
+
+                    $selectedNonAkademik = is_array($variabel->variabel_non_akademiks)
+                        ? $variabel->variabel_non_akademiks
+                        : (json_decode($variabel->variabel_non_akademiks, true) ?? []);
                 @endphp
 
                 <div class="form-group mb-3">

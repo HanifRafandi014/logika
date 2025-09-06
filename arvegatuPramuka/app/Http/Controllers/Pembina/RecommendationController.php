@@ -17,8 +17,14 @@ use App\Exports\ClusteringFinalExport;
 
 class RecommendationController extends Controller
 {
-    protected $baseUrl = 'http://127.0.0.1:5000';
-    protected $flaskApiUrl = 'http://127.0.0.1:5000/api/recommendations';
+    protected $baseUrl;
+    protected $flaskApiUrl;
+
+    public function __construct()
+    {
+        $this->baseUrl = rtrim(env('FLASK_API_URL', 'http://flask:5000'), '/');
+        $this->flaskApiUrl = $this->baseUrl . '/api/recommendations';
+    }
 
     public function index()
     {
@@ -306,7 +312,8 @@ class RecommendationController extends Controller
         try {
             $query = HasilClustering::with('siswa');
 
-            if ($request->has('gender') && in_array($request->input('gender'), ['1', '0'])) {
+            // Filter berdasarkan gender (1 = laki-laki, 0 = perempuan)
+            if ($request->has('gender') && in_array($request->input('gender'), ['1', '0'], true)) {
                 $gender = (int) $request->input('gender');
                 $query->whereHas('siswa', function ($q) use ($gender) {
                     $q->where('jenis_kelamin', $gender);
@@ -315,87 +322,102 @@ class RecommendationController extends Controller
 
             $hasilClusterings = $query->get();
 
-            // Ambil data yang sudah tersimpan di tabel final
-            $finalSiswaIds = ClusteringFinal::pluck('siswa_id')->toArray();
+            $selectedData = ClusteringFinal::pluck('siswa_id')->toArray();
 
             return view('pembina.rekomendasi.final_clustering', [
                 'hasilClusterings' => $hasilClusterings,
-                'selectedGender' => $request->input('gender'),
-                'finalSiswaIds' => $finalSiswaIds,
+                'selectedData' => $selectedData,
+                'selectedGender'   => $request->input('gender'),
             ]);
 
         } catch (\Exception $e) {
             Log::error("Error di finalClustering: " . $e->getMessage());
             return view('pembina.rekomendasi.final_clustering', [
                 'hasilClusterings' => collect([]),
-                'error' => 'Terjadi kesalahan saat mengambil data: ' . $e->getMessage(),
-                'selectedGender' => null,
-                'finalSiswaIds' => [],
+                'error'            => 'Terjadi kesalahan saat mengambil data: ' . $e->getMessage(),
+                'selectedGender'   => null,
             ]);
         }
     }
 
     public function saveFinalClustering(Request $request)
     {
-        $selected = $request->input('selected', []);
 
-        // Validasi jika tidak ada data yang dipilih
-        if (empty($selected)) {
-            return redirect()->back()->with('error', 'Silakan pilih minimal satu siswa untuk disimpan.');
+    //    $selected = $request->input('selected', []);
+
+        $selected = HasilClustering::whereIn('siswa_id', $request->input('selected', []))
+                            ->pluck('siswa_id')
+                            ->toArray();
+
+        ClusteringFinal::whereNotIn('siswa_id', $selected)->delete();
+
+        $hasilClusterings = HasilClustering::whereIn('siswa_id', $selected)->get()->keyBy('siswa_id');
+
+        foreach($selected as $siswa_id) {
+            $data = $hasilClusterings[$siswa_id];
+            ClusteringFinal::updateOrCreate(
+                ['siswa_id' => $siswa_id],
+                [
+                    'rata_rata_skor' => $data->rata_rata_skor,
+                    'kategori_lomba' => $data->kategori_lomba
+                ]
+            );
         }
 
-        DB::beginTransaction();
 
-        try {
-            // Hapus data lama untuk menghindari duplikasi
-            // Pertimbangkan apakah truncate selalu diinginkan atau perlu update/insert berdasarkan primary key
-            ClusteringFinal::truncate(); 
+          return back()->with('success', 'Data clustering final berhasil disinkronkan.');
 
-            foreach ($selected as $item) {
-                $decoded = json_decode($item, true);
-                
-                // Validasi struktur data JSON
-                if (!$decoded || !isset($decoded['siswa_id'], $decoded['kategori_lomba'], $decoded['rata_rata_skor'])) {
-                    continue;
-                }
-
-                // Validasi apakah siswa ada
-                $siswa = Siswa::find($decoded['siswa_id']);
-                if (!$siswa) {
-                    continue;
-                }
-
-                // Simpan ke tabel clustering_finals (sesuai struktur database)
-                ClusteringFinal::create([
-                    'siswa_id' => $decoded['siswa_id'],
-                    'kategori_lomba' => $decoded['kategori_lomba'],
-                    'rata_rata_skor' => $decoded['rata_rata_skor'],
-                ]);
-            }
-
-            DB::commit();
-            
-            $savedCount = count($selected);
-            return redirect()->back()->with('message', "Berhasil menyimpan {$savedCount} data siswa ke tabel clustering_finals.");
-            
-        } catch (\Exception $e) {
-            if (DB::transactionLevel() > 0) {
-                DB::rollback();
-            }
-            Log::error("Error saving final clustering: " . $e->getMessage());
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
     }
+
+        // try {
+        //     DB::transaction(function () use ($selectedIds, $gender) {
+        //         // Hapus data lama berdasarkan gender (jika ada filter)
+        //         $existingQuery = ClusteringFinal::query();
+
+        //         if ($gender) {
+        //             $existingQuery->whereHas('siswa', function ($q) use ($gender) {
+        //                 $q->where('jenis_kelamin', $gender);
+        //             });
+        //         }
+
+        //         $existingQuery->delete();
+
+        //         // Ambil siswa yang dipilih
+        //         $siswas = Siswa::whereIn('id', $selectedIds)->get();
+
+        //         // Map data untuk upsert
+        //         $dataToInsert = $siswas->map(function ($siswa) {
+        //             return [
+        //                 'siswa_id'       => $siswa->id,
+        //                 'kategori_lomba' => $siswa->kategori_lomba ?? 'Pioneering',
+        //                 'rata_rata_skor' => $siswa->rata_rata_skor ?? 0,
+        //                 'created_at'     => now(),
+        //                 'updated_at'     => now(),
+        //             ];
+        //         })->toArray();
+
+        //         // Simpan / update data
+        //         ClusteringFinal::upsert(
+        //             $dataToInsert,
+        //             ['siswa_id', 'kategori_lomba'], // unique key
+        //             ['rata_rata_skor', 'updated_at'] // kolom yang diupdate
+        //         );
+        //     });
+
+        //     return back()->with('success', 'Data clustering final berhasil disinkronkan.');
+        // } catch (\Exception $e) {
+        //     return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
+        // }
+    // }
 
     public function exportFinalClustering(Request $request)
     {
         try {
-            $gender = $request->input('gender'); // Ambil filter gender dari request
+            $gender = $request->input('gender');
 
-            // Beri nama file yang informatif
             $fileName = 'clustering_final_data';
-            if ($gender) {
-                $fileName .= '_' . strtolower($gender);
+            if ($gender !== null && $gender !== '') {
+                $fileName .= '_gender_' . $gender;
             }
             $fileName .= '_' . now()->format('Ymd_His') . '.xlsx';
 

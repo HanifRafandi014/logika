@@ -15,28 +15,56 @@
                 @csrf
                 @method('PUT')
 
+                {{-- Helper normalize di view: ubah input menjadi array jika perlu --}}
+                @php
+                    // Ambil raw value dengan aman (bila variabel null)
+                    $rawAkademik = optional($lomba->variabel)->variabel_akademiks ?? [];
+                    $rawNonAkademik = optional($lomba->variabel)->variabel_non_akademiks ?? [];
+
+                    // Fungsi kecil untuk menormalisasi menjadi array
+                    $toArray = function ($data) {
+                        if (is_array($data)) return $data;
+                        if (is_null($data) || $data === '') return [];
+                        if (is_string($data)) {
+                            $trimmed = trim($data);
+                            $decoded = json_decode($trimmed, true);
+                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                return $decoded;
+                            }
+                            return array_filter(array_map('trim', explode(',', $trimmed)));
+                        }
+                        return [];
+                    };
+
+                    $akademik = $toArray($rawAkademik);
+                    $nonAkademik = $toArray($rawNonAkademik);
+                @endphp
+
                 <div class="mb-3">
                     <label for="jenis_lomba" class="form-label">Jenis Lomba</label>
                     <select name="variabel_clustering_id" id="dropdown-lomba" class="form-select" disabled>
                         @foreach ($variabels as $v)
-                            <option value="{{ $v->id }}" 
-                                data-akademik='@json($v->variabel_akademiks)'
-                                data-nonakademik='@json($v->variabel_non_akademiks)'
+                            <option value="{{ $v->id }}"
+                                data-akademik='@json($v->variabel_akademiks ?? [])'
+                                data-nonakademik='@json($v->variabel_non_akademiks ?? [])'
                                 {{ $lomba->variabel_clustering_id == $v->id ? 'selected' : '' }}>
                                 {{ $v->jenis_lomba }}
                             </option>
                         @endforeach
                     </select>
+
+                    {{-- IMPORTANT: disabled elements are not submitted, so include hidden input --}}
+                    <input type="hidden" name="variabel_clustering_id" value="{{ $lomba->variabel_clustering_id }}">
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Variabel Akademik</label>
-                    <textarea class="form-control" id="variabel-akademik" rows="2" readonly>{{ implode(', ', $lomba->variabel->variabel_akademiks ?? []) }}</textarea>
+                    <textarea class="form-control" id="variabel-akademik" rows="2" readonly>{{ implode(', ', $akademik) }}</textarea>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Variabel Non Akademik</label>
-                    <textarea class="form-control" id="variabel-non-akademik" rows="2" readonly>{{ implode(', ', $lomba->variabel->variabel_non_akademiks ?? []) }}</textarea>
+                    <textarea class="form-control" id="variabel-non-akademik" rows="2" readonly>{{ implode(', ', $nonAkademik) }}</textarea>
                 </div>
 
                 <div class="mb-3">

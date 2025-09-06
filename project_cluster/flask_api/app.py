@@ -3,12 +3,15 @@ from flask_cors import CORS
 from sqlalchemy import text
 import traceback
 import pandas as pd
+import json
+import re
 
 from model import StudentRecommender
 from db import SessionLocal
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://127.0.0.1:8000"}})
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+
 
 def fetch_student_data():
     db = SessionLocal()
@@ -24,6 +27,7 @@ def fetch_student_data():
         """
         df = pd.read_sql(text(query), db.bind)
 
+        # Ambil status SKU
         sku_df = pd.read_sql(text("""
             SELECT siswa_id, MAX(status) AS status_sku
             FROM penilaian_skus
@@ -31,6 +35,7 @@ def fetch_student_data():
         """), db.bind)
         sku_df.rename(columns={"siswa_id": "id_siswa", "status_sku": "Status SKU"}, inplace=True)
 
+        # Ambil status SKK
         skk_df = pd.read_sql(text("""
             SELECT siswa_id, MAX(status) AS status_skk
             FROM penilaian_skks
@@ -38,18 +43,22 @@ def fetch_student_data():
         """), db.bind)
         skk_df.rename(columns={"siswa_id": "id_siswa", "status_skk": "Status SKK"}, inplace=True)
 
+        # Pivot nilai akademik & non-akademik jadi satu baris per siswa
         pivot_df = df.pivot_table(
             index=['id_siswa', 'nama_siswa'],
             columns='nama_variabel',
             values='nilai'
         ).reset_index()
 
+        # Merge dengan SKU & SKK
         merged_df = pivot_df.merge(sku_df, how='left', on='id_siswa')
         merged_df = merged_df.merge(skk_df, how='left', on='id_siswa')
 
+        # Isi kosong dengan 0
         merged_df['Status SKU'] = merged_df['Status SKU'].fillna(0)
         merged_df['Status SKK'] = merged_df['Status SKK'].fillna(0)
 
+        # Rename agar konsisten
         merged_df.rename(columns={
             'id_siswa': 'ID Siswa',
             'nama_siswa': 'Nama Siswa'
@@ -59,51 +68,148 @@ def fetch_student_data():
     finally:
         db.close()
 
+def extract_lists_from_field(field):
+    """
+    Membersihkan dan mengubah field menjadi list Python.
+    Bisa menangani:
+    - JSON list: ["Matematika","IPA"]
+    - Gabungan array: ["Matematika","IPA"]["Skor Penerapan","Status SKU"]
+    - String dengan escape: "[\"Matematika\",\"IPA\"]"
+    - Kasus kacau: \\"Matematika\\", \\"IPA\\"
+    """
+    if not field:
+        return []
+
+    s = str(field).strip()
+    if s.lower() in ("", "[]", "null"):
+        return []
+
+    # Bersihkan escape karakter ganda seperti \\"Matematika\\"
+    s = s.replace('\\\"', '"').replace('\\"', '"').replace('\\\\', '\\')
+
+    # 1) coba langsung parse JSON
+    try:
+        parsed = json.loads(s)
+        if isinstance(parsed, list):
+            return parsed
+    except Exception:
+        pass
+
+    # 2) cari semua array di dalam string
+    matches = re.findall(r'\[[^\]]*\]', s)
+    result = []
+    if matches:
+        for m in matches:
+            try:
+                sub = json.loads(m)
+                if isinstance(sub, list):
+                    result.extend(sub)
+                    continue
+            except Exception:
+                inner = m.strip()[1:-1].strip()
+                if inner:
+                    parts = [p.strip().strip('"').strip("'") for p in inner.split(',') if p.strip()]
+                    result.extend(parts)
+        return result
+
+    # 3) fallback: ekstrak manual
+    m = re.search(r'\[(.*)\]', s)
+    if m:
+        inner = m.group(1)
+        parts = [p.strip().strip('"').strip("'") for p in inner.split(',') if p.strip()]
+        return parts
+
+    print(f"[WARNING] Tidak bisa ekstrak list dari field: {field}")
+    return []
+
+
+def clean_variable_list(vars_list):
+    """
+    Bersihkan setiap elemen list:
+    - Hilangkan \, tanda kutip ganda & tunggal
+    - Hilangkan elemen kosong
+    """
+    return [
+        v.strip().replace('\\', '').strip('"').strip("'")
+        for v in vars_list if v and v.strip()
+    ]
+
 def fetch_competitions_data():
     db = SessionLocal()
     try:
         query = """
-        SELECT l.jumlah_siswa, vc.jenis_lomba, vc.variabel_akademiks, vc.variabel_non_akademiks
+        SELECT l.jumlah_siswa,
+               vc.jenis_lomba,
+               vc.variabel_akademiks,
+               vc.variabel_non_akademiks
         FROM lombas l
         JOIN variabel_clusterings vc ON vc.id = l.variabel_clustering_id
         WHERE l.status = 1
         """
         result = db.execute(text(query))
         competitions = []
+
         for row in result:
-            var_akademik = eval(row.variabel_akademiks or '[]')
-            var_non_akademik = eval(row.variabel_non_akademiks or '[]')
+            akademiks = []
+            non_akademiks = []
+
+            if row.variabel_akademiks and row.variabel_akademiks.strip():
+                akademiks = extract_lists_from_field(row.variabel_akademiks)
+                akademiks = clean_variable_list(akademiks)
+
+            if row.variabel_non_akademiks and row.variabel_non_akademiks.strip():
+                non_akademiks = extract_lists_from_field(row.variabel_non_akademiks)
+                non_akademiks = clean_variable_list(non_akademiks)
+
+            variabels = clean_variable_list(akademiks + non_akademiks)
+
+            if not variabels:
+                print(f"[INFO] Lomba '{row.jenis_lomba}' dilewati karena tidak memiliki variabel yang valid.")
+                continue
+
             competitions.append({
                 'Lomba': row.jenis_lomba,
                 'Jumlah Siswa yang Dibutuhkan': row.jumlah_siswa,
-                'Variabel yang Digunakan': var_akademik + var_non_akademik
+                'Variabel yang Digunakan': variabels
             })
+
         return competitions
     finally:
         db.close()
 
+
 # Inisialisasi global recommender
 recommender = None
+
 
 def initialize_model():
     global recommender
     try:
         student_df = fetch_student_data()
         competitions_data = fetch_competitions_data()
+
+        print("[DEBUG] Kolom Data Siswa:", student_df.columns.tolist())
+        print("[DEBUG] Variabel dari lomba (contoh 5):", [c['Variabel yang Digunakan'] for c in competitions_data[:5]])
+        print(f"[DEBUG] Jumlah lomba valid yang dipakai: {len(competitions_data)}")
+
         recommender = StudentRecommender(competitions_data, student_df)
         recommender.load_and_preprocess_data()
         recommender.perform_clustering()
         recommender.generate_recommendations()
     except Exception as e:
+        print("[ERROR] Gagal inisialisasi model:", e)
         traceback.print_exc()
         recommender = None
+
 
 # Inisialisasi awal
 initialize_model()
 
+
 @app.route('/')
 def home():
     return jsonify({"message": "API Rekomendasi Siswa Pramuka", "status": "running"})
+
 
 @app.route('/api/normalized-data', methods=['GET'])
 def get_normalized_data():
@@ -132,6 +238,7 @@ def get_all_recommendations():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/api/recommendations/<lomba_name>', methods=['GET'])
 def get_recommendations_for_lomba(lomba_name):
     if recommender is None:
@@ -145,12 +252,14 @@ def get_recommendations_for_lomba(lomba_name):
         required_num = recommender.get_required_student_count(clean_lomba)
         display_df = df_filtered.head(required_num if required_num > 0 else len(df_filtered))
         return jsonify(display_df[[
-            'ID Siswa', 'Nama Siswa', 'Lomba Rekomendasi', 'Kategori Cluster', 'Rata-rata Skor Lomba', 'Fase Rekomendasi'
+            'ID Siswa', 'Nama Siswa', 'Lomba Rekomendasi', 'Kategori Cluster',
+            'Rata-rata Skor Lomba', 'Fase Rekomendasi'
         ]].to_dict(orient='records')), 200
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
-    
+
+
 @app.route('/api/clustering-metrics', methods=['GET'])
 def clustering_metrics():
     if recommender is None:
@@ -161,6 +270,7 @@ def clustering_metrics():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/api/cluster-mapping', methods=['GET'])
 def get_cluster_mapping():
     if recommender is None:
@@ -170,6 +280,7 @@ def get_cluster_mapping():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/api/lomba-status', methods=['GET'])
 def get_lomba_status():
@@ -182,6 +293,7 @@ def get_lomba_status():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/api/lomba-rankings', methods=['GET'])
 def get_lomba_rankings():
     if recommender is None:
@@ -192,7 +304,8 @@ def get_lomba_rankings():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
-    
+
+
 @app.route('/api/versatile-students', methods=['GET'])
 def get_versatile_students():
     if recommender is None:
@@ -203,6 +316,7 @@ def get_versatile_students():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

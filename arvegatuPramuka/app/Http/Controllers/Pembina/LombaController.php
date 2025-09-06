@@ -11,12 +11,13 @@ class LombaController extends Controller
 {
     public function index()
     {
-        $lombas = Lomba::with('variabel')->get(); // pastikan relasi variabel didefinisikan
+        $lombas = Lomba::with('variabel')->get();
         return view('pembina.lomba.index', compact('lombas'));
     }
 
     public function create()
     {
+        // Tidak perlu with() karena variabel_akademiks & variabel_non_akademiks sudah berupa JSON array
         $variabels = VariabelClustering::all();
         return view('pembina.lomba.create', compact('variabels'));
     }
@@ -45,6 +46,11 @@ class LombaController extends Controller
     public function update(Request $request, $id)
     {
         $lomba = Lomba::findOrFail($id);
+
+        // Jika variabel_clustering_id tidak dikirim (karena disabled), gunakan nilai lama
+        if (! $request->has('variabel_clustering_id')) {
+            $request->merge(['variabel_clustering_id' => $lomba->variabel_clustering_id]);
+        }
 
         $validated = $request->validate([
             'variabel_clustering_id' => 'required|exists:variabel_clusterings,id',

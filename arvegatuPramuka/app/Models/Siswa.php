@@ -59,6 +59,7 @@ class Siswa extends Model
 
     public function clustering_final()
     {
-        return $this->hasMany(ClusteringFinal::class, 'clustering_final_id');
+        return $this->hasMany(ClusteringFinal::class, 'siswa_id');
     }
+
 }

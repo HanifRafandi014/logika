@@ -14,9 +14,9 @@ use App\Http\Controllers\Admin\OrangTuaController;
 use App\Http\Controllers\Admin\DashboardAdminController;
 use App\Http\Controllers\Admin\EditProfilAdminController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\ManajemenSkuController; 
-use App\Http\Controllers\Admin\ManajemenSkkController; 
-use App\Http\Controllers\Admin\BesaranBiayaController; 
+use App\Http\Controllers\Admin\ManajemenSkuController;
+use App\Http\Controllers\Admin\ManajemenSkkController;
+use App\Http\Controllers\Admin\BesaranBiayaController;
 use App\Http\Controllers\Admin\VariabelController;
 // Pembina Controllers
 use App\Http\Controllers\Pembina\EditProfilPembinaController;
@@ -90,8 +90,8 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/edit-profil-admin', [EditProfilAdminController::class, 'editProfilAdmin'])->name('editProfilAdmin'); // Kembali ke nama asli
     Route::put('/update-profil-admin', [EditProfilAdminController::class, 'updateProfilAdmin'])->name('updateProfilAdmin'); // Kembali ke nama asli
     Route::resource('users', UserController::class);
-    Route::resource('manajemen_sku', ManajemenSkuController::class); 
-    Route::resource('manajemen_skk', ManajemenSkkController::class); 
+    Route::resource('manajemen_sku', ManajemenSkuController::class);
+    Route::resource('manajemen_skk', ManajemenSkkController::class);
     Route::resource('data-besaran-biaya', BesaranBiayaController::class);
     Route::resource('data-variabel', VariabelController::class);
 

@@ -11,6 +11,7 @@ class ClusteringFinal extends Model
     protected $guarded = [];
     public function siswa()
     {
-        return $this->belongsTo(Siswa::class);
+        return $this->belongsTo(Siswa::class, 'siswa_id');
     }
+
 }

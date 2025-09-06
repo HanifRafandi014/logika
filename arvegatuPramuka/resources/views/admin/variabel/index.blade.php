@@ -11,7 +11,7 @@
         font-size: 14px;
         transition: all 0.3s ease;
       }
-  
+
       .column-search:focus {
         border-color: #66afe9;
         outline: none;
@@ -19,13 +19,13 @@
       }
     </style>
 </head>
-  
+
   @extends('layouts.main')
-  
+
   @section('sidebar')
     @include('layouts.sidebar.admin')
   @endsection
-  
+
   @section('content')
   <div class="col-md-12">
     <div class="card">
@@ -35,7 +35,7 @@
             <a href="{{ route('data-variabel.create') }}" class="btn btn-primary btn-sm me-2" title="Tambah Guru">
                 <i class="fa fa-plus-square" aria-hidden="true"></i>
             </a>
-        </div>     
+        </div>
       </div>
       <div class="card-body">
         <div class="table-responsive">
@@ -55,15 +55,15 @@
                   <td>{{ $index + 1 }}</td> <!-- Nomor Urut -->
                   <td>{{ $variabel->jenis_lomba }}</td>
                   <td>
-                    {{ is_array($variabel->variabel_akademiks) 
-                        ? implode(', ', $variabel->variabel_akademiks) 
-                        : $variabel->variabel_akademiks }}
-                  </td>
-                  <td>
-                    {{ is_array($variabel->variabel_non_akademiks) 
-                        ? implode(', ', $variabel->variabel_non_akademiks) 
-                        : $variabel->variabel_non_akademiks }}
-                  </td>
+                        {{ is_array($variabel->variabel_akademiks)
+                            ? implode(', ', $variabel->variabel_akademiks)
+                            : implode(', ', json_decode($variabel->variabel_akademiks, true) ?? []) }}
+                    </td>
+                    <td>
+                        {{ is_array($variabel->variabel_non_akademiks)
+                            ? implode(', ', $variabel->variabel_non_akademiks)
+                            : implode(', ', json_decode($variabel->variabel_non_akademiks, true) ?? []) }}
+                    </td>
                   <td>
                     <a href="{{ route('data-variabel.edit', $variabel->id) }}" class="btn btn-sm btn-warning" title="Edit">
                         <i class="fas fa-edit"></i>
@@ -75,7 +75,7 @@
                         <i class="fas fa-trash-alt"></i>
                       </button>
                     </form>
-                  </td>                  
+                  </td>
                 </tr>
                 @endforeach
             </tbody>
@@ -86,7 +86,7 @@
     </div>
   </div>
   @endsection
-  
+
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script>
     $(document).ready(function () {
@@ -97,4 +97,3 @@
       });
     });
   </script>
-  

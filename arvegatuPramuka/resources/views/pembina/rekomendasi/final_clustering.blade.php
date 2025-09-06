@@ -30,13 +30,12 @@
     <div class="card">
         <div class="card-header">
             <h5 class="mb-0">Data Hasil Clustering</h5>
-            <small class="text-muted">Pilih siswa yang akan disimpan ke tabel clustering_finals</small>
+            <small class="text-muted">Pilih siswa yang akan disimpan ke tabel <code>clustering_finals</code></small>
         </div>
         <div class="card-body">
             <div class="mb-3 d-flex justify-content-between align-items-center">
                 <!-- Filter di kiri -->
                 <div class="col-md-3">
-                    <label for="filterGender" class="form-label visually-hidden">Filter Jenis Kelamin</label>
                     <select class="form-select" id="filterGender">
                         <option value="">Semua Jenis Kelamin</option>
                         <option value="1" {{ $selectedGender == '1' ? 'selected' : '' }}>Laki-laki</option>
@@ -53,22 +52,20 @@
                     @endif
                 </div>
 
-                <!-- Tombol Export & Save di kanan -->
+                <!-- Tombol Export -->
                 <div class="d-flex gap-2">
                     <a href="{{ route('pembina.rekomendasi.export_final_clustering', ['gender' => $selectedGender]) }}"
-                    class="btn btn-success" title="Export Excel">
+                        class="btn btn-success" title="Export Excel">
                         <i class="fas fa-file-excel"></i>
                     </a>
-                    @if($hasilClusterings->count() > 0)
-                        <button type="submit" class="btn btn-primary" id="saveBtn" title="Simpan Clustering Final">
-                            <i class="fas fa-save"></i>
-                        </button>
-                    @endif
                 </div>
             </div>
 
+            <!-- FORM Mulai -->
             <form action="{{ route('pembina.rekomendasi.save_final_clustering') }}" method="POST" id="clusteringForm">
                 @csrf
+                <input type="hidden" name="gender" value="{{ $selectedGender }}">
+
                 <div class="mb-3">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="checkAll">
@@ -93,11 +90,7 @@
                             @forelse($hasilClusterings as $hasil)
                                 <tr>
                                     <td class="text-center">
-                                        <input type="checkbox" 
-                                            class="form-check-input row-checkbox" 
-                                            name="selected[]" 
-                                            value='@json(["siswa_id" => $hasil->siswa_id, "kategori_lomba" => $hasil->kategori_lomba, "rata_rata_skor" => $hasil->rata_rata_skor])'
-                                            {{ in_array($hasil->siswa_id, $finalSiswaIds ?? []) ? 'checked' : '' }}>
+                                        <input type="checkbox" class="row-checkbox" name="selected[]" value="{{ $hasil->siswa_id }}" {{ in_array($hasil->siswa_id, $selectedData) ? 'checked' : '' }}>
                                     </td>
                                     <td><strong>{{ $hasil->siswa->nama ?? '-' }}</strong></td>
                                     <td>
@@ -118,6 +111,14 @@
                         </tbody>
                     </table>
                 </div>
+
+                @if($hasilClusterings->count() > 0)
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="submit" class="btn btn-primary" id="saveBtn" title="Simpan Clustering Final" disabled>
+                            <i class="fas fa-save"></i> Simpan
+                        </button>
+                    </div>
+                @endif
             </form>
         </div>
     </div>
@@ -138,34 +139,32 @@
         const form = document.getElementById('clusteringForm');
         const filterGenderSelect = document.getElementById('filterGender');
 
+        // Toggle semua checkbox
         checkAllBtn.addEventListener('change', function() {
-            rowCheckboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
-            });
+            rowCheckboxes.forEach(checkbox => { checkbox.checked = this.checked; });
             updateSaveButton();
         });
 
+        // Toggle individu checkbox
         rowCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', function() {
-                const totalCheckboxes = rowCheckboxes.length;
-                const checkedCheckboxes = document.querySelectorAll('.row-checkbox:checked').length;
+                const total = rowCheckboxes.length;
+                const checked = document.querySelectorAll('.row-checkbox:checked').length;
 
-                checkAllBtn.checked = (checkedCheckboxes === totalCheckboxes);
-                checkAllBtn.indeterminate = (checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes);
+                checkAllBtn.checked = (checked === total);
+                checkAllBtn.indeterminate = (checked > 0 && checked < total);
 
                 updateSaveButton();
             });
         });
 
         function updateSaveButton() {
-            const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
-            saveBtn.disabled = checkedCount === 0;
-
-            if (checkedCount === 0) {
-                saveBtn.innerHTML = '<i class="fas fa-save"></i>';
-            } else {
-                saveBtn.innerHTML = `<i class="fas fa-save"></i> Simpan ${checkedCount} Data Terpilih`;
-            }
+            const checked = document.querySelectorAll('.row-checkbox:checked').length;
+            if (!saveBtn) return;
+            saveBtn.disabled = checked === 0;
+            saveBtn.innerHTML = checked === 0
+                ? '<i class="fas fa-save"></i> Simpan'
+                : `<i class="fas fa-save"></i> Simpan ${checked} Data`;
         }
 
         filterGenderSelect.addEventListener('change', function() {
@@ -181,14 +180,12 @@
 
         form.addEventListener('submit', function(e) {
             const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
-
             if (checkedCount === 0) {
                 e.preventDefault();
                 alert('Silakan pilih minimal satu siswa untuk disimpan.');
                 return false;
             }
-
-            if (!confirm(`Apakah Anda yakin ingin menyimpan ${checkedCount} data terpilih ke tabel clustering_finals?`)) {
+            if (!confirm(`Yakin ingin menyimpan ${checkedCount} data ke tabel clustering_finals?`)) {
                 e.preventDefault();
                 return false;
             }
