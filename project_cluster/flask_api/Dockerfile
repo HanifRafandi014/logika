@@ -16,8 +16,3 @@ ENV FLASK_RUN_PORT=5000
 
 # Jalankan Flask (host 0.0.0.0 supaya bisa diakses dari luar container)
 CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
-<<<<<<< HEAD
-=======
-
-##
->>>>>>> origin/main
