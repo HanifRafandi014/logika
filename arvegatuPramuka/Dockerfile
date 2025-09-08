@@ -15,10 +15,13 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Copy project files
 COPY . .
 
+
 # Install dependencies
 RUN composer install --no-interaction --optimize-autoloader
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www
+# setelah COPY . .
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+
 
 CMD ["php-fpm"]
