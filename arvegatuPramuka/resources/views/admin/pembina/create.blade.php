@@ -1,0 +1,98 @@
+{{-- resources/views/admin/pembina/create.blade.php --}}
+@extends('layouts.main')
+
+@section('sidebar')
+    @include('layouts.sidebar.admin')
+@endsection
+
+@section('content')
+<div class="col-md-8 offset-md-2">
+    <div class="card">
+        <div class="card-header">
+            <h4>Tambah Pembina</h4>
+        </div>
+        <div class="card-body">
+            <form action="{{ route('data-pembina.store') }}" method="POST">
+                @csrf
+                <div class="form-group mb-3">
+                    <label for="nama">Nama Pembina</label>
+                    <input type="text" name="nama" id="nama" class="form-control @error('nama') is-invalid @enderror" value="{{ old('nama') }}">
+                    @error('nama')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+                <div class="form-group mb-3">
+                    <label for="kelas">Kelas</label>
+                    <input type="text" name="kelas" id="kelas" class="form-control @error('kelas') is-invalid @enderror" value="{{ old('kelas') }}">
+                    @error('kelas')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+                <div class="form-group mb-3">
+                    <label for="nip">NIP</label>
+                    <input type="text" name="nip" id="nip" class="form-control @error('nip') is-invalid @enderror" value="{{ old('nip') }}">
+                    @error('nip')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+                <div class="form-group mb-3">
+                    <label for="kategori">Kategori</label>
+                    <input type="text" name="kategori" id="kategori" class="form-control @error('kategori') is-invalid @enderror" value="{{ old('kategori') }}">
+                    @error('kategori')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+                <div class="form-group mb-3">
+                    <label for="status">Status</label>
+                    <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
+                        <option value="">Pilih Status</option>
+                        {{-- Loop melalui opsi boolean (1 atau 0) --}}
+                        @foreach($pembinaOptions as $value => $label)
+                            <option value="{{ $value }}" {{ old('status') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('status')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group mb-3">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username" class="form-control @error('username') is-invalid @enderror" value="{{ old('username') }}" required>
+                    @error('username')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+                <div class="form-group mb-3">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" required>
+                    @error('password')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+                <div class="form-group mb-3">
+                    <label for="password_confirmation">Konfirmasi Password</label>
+                    <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3" title="Simpan Data">
+                    <i class="fas fa-save"></i>
+                </button>
+                <a href="{{ route('data-pembina.index') }}" class="btn btn-secondary mt-3" title="Kembali">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection
